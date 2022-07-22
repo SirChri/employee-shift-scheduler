@@ -10,7 +10,7 @@ router.get('/', function(req, res, next) {
 
     pool.query(query, (error, results) => {
         if (error) {
-            throw error
+            return res.status(500).send({message: error})
         }
         res.status(200).json(results.rows)
     })
@@ -18,10 +18,41 @@ router.get('/', function(req, res, next) {
 
 router.post('/', function(req, res, next) {
     const { dipendente, data_inizio, data_fine, cliente } = req.body
+    
+    if (!dipendente) return res.status(500).send({message: "Compilare il campo 'dipendente'"})
+    if (!data_inizio) return res.status(500).send({message: "Compilare il campo 'data_inizio'"})
+    if (!data_fine) return res.status(500).send({message: "Compilare il campo 'data_fine'"})
+    if (!cliente) return res.status(500).send({message: "Compilare il campo 'cliente'"})
 
-    pool.query('INSERT INTO "Agenda" (dipendente, data_inizio, data_fine, cliente) VALUES ($1, $2, $3, $4) RETURNING *', [dipendente == '' ? null : dipendente, data_inizio == '' ? null : data_inizio, data_fine == '' ? null : data_fine, cliente == '' ? null : cliente], (error, results) => {
+    if (new Date(data_inizio) > new Date(data_fine)) {
+        return res.status(500).send({message: "Data fine deve essere maggiore alla data inizio."})
+    }
+
+    pool.query('INSERT INTO "Agenda" (dipendente, data_inizio, data_fine, cliente) VALUES ($1, $2, $3, $4) RETURNING *', [dipendente, data_inizio, data_fine, cliente], (error, results) => {
         if (error) {
-            throw error
+            return res.status(500).send({message: error})
+        }
+        res.status(201).send({
+            id: results.rows[0].id
+        })
+    })
+});
+
+router.put('/', function(req, res, next) {
+    const { id, dipendente, cliente, data_inizio, data_fine } = req.body
+    
+    if (!dipendente) return res.status(500).send({message: "Compilare il campo 'dipendente'"})
+    if (!data_inizio) return res.status(500).send({message: "Compilare il campo 'data_inizio'"})
+    if (!data_fine) return res.status(500).send({message: "Compilare il campo 'data_fine'"})
+    if (!cliente) return res.status(500).send({message: "Compilare il campo 'cliente'"})
+
+    if (new Date(data_inizio) > new Date(data_fine)) {
+        return res.status(500).send({message: "Data fine deve essere maggiore alla data inizio."})
+    }
+
+    pool.query(`UPDATE "Agenda" SET (dipendente, data_inizio, data_fine, cliente) = ($1, $2, $3, $4) WHERE id = $5 RETURNING *`, [dipendente, data_inizio, data_fine, cliente, id], (error, results) => {
+        if (error) {
+            res.status(500).send({message: error})
         }
         res.status(201).send({
             id: results.rows[0].id

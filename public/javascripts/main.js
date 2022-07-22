@@ -4,8 +4,23 @@ $(document).ready(function() {
 
     var elems = document.querySelectorAll('.modal');
     var instances = M.Modal.init(elems, {
-        container: "body"
+        container: "body",
+        onCloseEnd: function(modal) {
+            var form = $(modal).find("form");
+            $(form).find('select').each(function(i, obj) {
+                $(this).find("option").each(function(j, opt) {
+                    $(this).removeAttr('selected', 'selected');
+                })
+                $(this).find('option:first').attr('selected', 'selected');
+            });
+            $(form).find("input, textarea").val("");
+        }
     });
+
+    function refreshTips() {
+        var elems = document.querySelectorAll('.tooltipped');
+        var instances = M.Tooltip.init(elems, {});
+    }
 
     elems = document.querySelectorAll('select');
     instances = M.FormSelect.init(elems, {
@@ -19,10 +34,10 @@ $(document).ready(function() {
         M.FormSelect.init(this, {});
     });
 
-
-    $(".timepicker").flatpickr({
+    var flatpickrOpts = {
         enableTime: true,
         dateFormat: 'Z',
+        locale: "it",
         altInput: true,
         altFormat: "Y-m-d H:i",
         onOpen: function(selectedDates, dateStr, instance) {
@@ -35,7 +50,9 @@ $(document).ready(function() {
                 obj.setAttribute('tabindex', 0);
             })
         }
-    });
+    }
+
+    $(".timepicker").flatpickr(flatpickrOpts);
 
 
     $("#create-dipendente a.submit").click(function() {
@@ -47,22 +64,15 @@ $(document).ready(function() {
             values[field.name] = field.value;
         });
 
-        $.ajax({
-            url: "/dipendenti",
-            method: "POST",
-            data: JSON.stringify(values),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(data) {
-                M.toast({ html: 'Dipendente creato!' })
-                modal.close();
-                if (timeline)
-                    redraw();
-
-            }
-        }).fail(function(jqXHR, textStatus) {
-            alert("Request failed: " + textStatus);
-        });
+        newDipendente(values, function(data) {
+            M.toast({ html: 'Dipendente creato!' })
+            modal.close();
+            if (timeline)
+                redraw();
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        })
     })
 
     $("#create-cliente a.submit").click(function() {
@@ -74,106 +84,127 @@ $(document).ready(function() {
             values[field.name] = field.value;
         });
 
-        $.ajax({
-            url: "/cliente",
-            method: "POST",
-            data: JSON.stringify(values),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(data) {
-                M.toast({ html: 'Cliente creato!' })
-                modal.close();
-                if (clientiTable) {
-                    clientiTable.ajax.reload();
-                }
+        newCliente(values, function(data) {
+            M.toast({ html: 'Cliente creato!' })
+            modal.close();
+            if (clientiTable) {
+                clientiTable.ajax.reload();
             }
-        }).fail(function(jqXHR, textStatus) {
-            alert("Request failed: " + textStatus);
-        });
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        })
     })
 
-    $("#create-agenda a.submit").click(function() {
-        var modal = M.Modal.getInstance($("#create-agenda"));
-        var form = $("#create-agenda form");
+    $("#create-agenda-from-timeline a.submit").click(function() {
+        var modal = M.Modal.getInstance($("#create-agenda-from-timeline"));
+        var form = $("#create-agenda-from-timeline form");
 
         var values = {};
         $.each(form.serializeArray(), function(i, field) {
             values[field.name] = field.value;
         });
 
-        $.ajax({
-            url: "/agenda",
-            method: "POST",
-            data: JSON.stringify(values),
-            dataType: "json",
-            contentType: "application/json",
-            success: function(data) {
+        newAgenda(values, function(data) {
+            M.toast({ html: 'Agenda aggiornata!' })
+            modal.close();
+            //todo: gestire i le descr dei clienti come values.content
+
+            values.id = data.id;
+            values.start = new Date(values.data_inizio);
+            values.end = new Date(values.data_fine);
+            values.group = values.dipendente;
+
+            timeline.itemsData.add(values)            
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        })
+    })
+
+    $("#create-or-update-agenda a.submit").click(function() {
+        var modal = M.Modal.getInstance($("#create-or-update-agenda"));
+        var form = $("#create-or-update-agenda form");
+
+        var values = {};
+        $.each(form.serializeArray(), function(i, field) {
+            values[field.name] = field.value;
+        });
+
+        if (values["id"]) {
+            updateAgenda(values, function(data) {
                 M.toast({ html: 'Agenda aggiornata!' })
                 modal.close();
 
+                timeline.itemsData.remove(values.id)
+                loadItems();
+            }, function(e) {
+                let resp = e.responseJSON;
+                M.toast({ html: 'Errore: '+resp ? resp.message : e })
+            })
+        } else {
+            newAgenda(values, function(data) {
+                M.toast({ html: 'Agenda aggiornata!' })
+                modal.close();
+                
                 values.id = data.id;
                 values.start = new Date(values.data_inizio);
                 values.end = new Date(values.data_fine);
                 values.group = values.dipendente;
 
                 timeline.itemsData.add(values)
-            }
-        }).fail(function(jqXHR, textStatus) {
-            alert("Request failed: " + textStatus);
-        });
+            }, function(e) {
+                let resp = e.responseJSON;
+                M.toast({ html: 'Errore: '+resp ? resp.message : e })
+            })
+        }
     })
 
     //rendicontazione dipendente mgt
     $("#rendicontazione-dipendente-btn").on("click", function() {
         var modal = M.Modal.getInstance($("#rendicontazione-dipendente"));
-        $.ajax({
-            url: "/dipendenti",
-            method: "GET",
-            dataType: "json",
-            contentType: "application/json",
-            success: function(data) {
-                debugger;
-                var $select = $(modal.el).find("select[name=dipendente]");
-                data = data;
-                $select.find('option').remove().end()
-                    .append('<option value="" disabled selected>Seleziona...</option>')
-                    .val('');
 
-                $.each(data, function(i, item) {
-                    $select.append($('<option>', {
-                        value: item.id,
-                        text: item.nome + " " + item.cognome
-                    }));
-                });
-                $select.trigger('contentChanged');
-                modal.open()
-            }
-        }).fail(function(jqXHR, textStatus) {
-            alert("Request failed: " + textStatus);
-        });
+        loadDipendenti(function(data) {
+            var $select = $(modal.el).find("select[name=dipendente]");
+            data = data;
+            $select.find('option').remove().end()
+                .append('<option value="" disabled selected>Seleziona...</option>')
+                .val('');
+
+            $.each(data, function(i, item) {
+                $select.append($('<option>', {
+                    value: item.id,
+                    text: item.nome + " " + item.cognome
+                }));
+            });
+            $select.trigger('contentChanged');
+            modal.open()
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        })
+    })
+
+    $("#create-or-update-agenda-btn").on("click", function() {
+        openCreateOrUpdateAgenda();
     })
 
 
     $("#rendicontazione-dipendente a.submit").click(function() {
         var form = $("#rendicontazione-dipendente form");
 
-        var values = {};
+        var params = {};
         $.each(form.serializeArray(), function(i, field) {
-            values[field.name] = field.value;
+            params[field.name] = field.value;
         });
 
-        $.ajax({
-            url: "/dipendenti/resoconto",
-            method: "GET",
-            data: values,
-            contentType: "application/json",
-            success: function(data) {
-                resocontoTable.clear();
-                resocontoTable.rows.add(data).draw();
-            }
-        }).fail(function(jqXHR, textStatus) {
-            alert("Request failed: " + textStatus);
-        });
+        getResoconto(params, function(data) {
+            resocontoTable.clear();
+            resocontoTable.rows.add(data).draw();
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        })
     })
 
     //TIMELINE MGT
@@ -186,6 +217,7 @@ $(document).ready(function() {
         stack: true,
         stackSubgroups: false,
         zoomKey: 'ctrlKey',
+        zoomMin: 3600000*24,
         height: '100%',
         groupHeightMode: 'fixed',
         margin: {
@@ -197,7 +229,8 @@ $(document).ready(function() {
         editable: {
             add: true,
             remove: true,
-            updateTime: true
+            updateTime: true,
+            updateGroup: true
         },
         snap: function(date, scale, step) {
             var clone = new Date(date.valueOf());
@@ -214,54 +247,46 @@ $(document).ready(function() {
                 return html;
             }
         },
-        start: Date.now() - 1000 * 60 * 60 * 24 * 3,
-        end: Date.now() + 1000 * 60 * 60 * 24 * 21, // approx 1month
+        start: moment().startOf('week').add("1", "d").toDate(),
+        end: moment().endOf('week').add("1", "d").toDate(), // approx 1month
         selectable: true,
         multiselect: false,
         onAdd: function(item, callback) {
-            var modal = M.Modal.getInstance($("#create-agenda"));
+            var modal = M.Modal.getInstance($("#create-agenda-from-timeline"));
 
-            $.ajax({
-                url: "/dipendenti/" + item.group,
-                method: "GET",
-                dataType: "json",
-                contentType: "application/json",
-                success: function(data) {
-                    $(modal.el).find("input[name=dipendente_descr]").val(`${data.nome} ${data.cognome}`);
-                    $(modal.el).find("input[name=dipendente]").val(data.id);
+            getDipendente(item.group, function(data) {
+                $(modal.el).find("input[name=dipendente_descr]").val(`${data.nome} ${data.cognome}`);
+                $(modal.el).find("input[name=dipendente]").val(data.id);
+                $(modal.el).find("input[name=data_inizio]").flatpickr(flatpickrOpts).setDate(item.start);
+                $(modal.el).find("input[name=data_fine]").flatpickr(flatpickrOpts).setDate(moment(item.start).add(1, 'h').toDate());
 
-                    $.ajax({
-                        url: "/cliente",
-                        method: "GET",
-                        dataType: "json",
-                        contentType: "application/json",
-                        success: function(data) {
-                            var $select = $(modal.el).find("select[name=cliente]");
-                            data = data.data;
-                            $select.find('option').remove().end()
-                                .append('<option value="" disabled selected>Seleziona...</option>')
-                                .val('');
+                loadClienti(function(data) {
+                    var $select = $(modal.el).find("select[name=cliente]");
+                    data = data.data;
+                    $select.find('option').remove().end()
+                        .append('<option value="" disabled selected>Seleziona...</option>')
+                        .val('');
 
-                            $.each(data, function(i, item) {
-                                $select.append($('<option>', {
-                                    value: item.id,
-                                    text: item.nome
-                                }));
-                            });
-                            $select.trigger('contentChanged');
-                            modal.open()
-                        }
-                    }).fail(function(jqXHR, textStatus) {
-                        alert("Request failed: " + textStatus);
+                    $.each(data, function(i, item) {
+                        $select.append($('<option>', {
+                            value: item.id,
+                            text: item.nome
+                        }));
                     });
-                }
-            }).fail(function(jqXHR, textStatus) {
-                alert("Request failed: " + textStatus);
+                    $select.trigger('contentChanged');
+                    modal.open()
+                }, function(e) {
+                    let resp = e.responseJSON;
+                    M.toast({ html: 'Errore: '+resp ? resp.message : e })
+                })
+            }, function(e) {
+                let resp = e.responseJSON;
+                M.toast({ html: 'Errore: '+resp ? resp.message : e })
             });
         },
         onRemove: function(item, callback) {},
         onUpdate: function(item, callback) {
-
+            openCreateOrUpdateAgenda(item, callback);
         },
         xss: {
             disabled: true,
@@ -285,98 +310,49 @@ $(document).ready(function() {
                     timeZone: 'Europe/Berlin',
                     hour: '2-digit',
                     minute: '2-digit'
-                })
-            return `<i class="tiny material-icons">person</i> ${data.cliente_descr}<br>${start}-${end}`;
+                }),
+                txt = `${data.cliente_descr} ${start}-${end}`;
+
+            return `<span class="tooltipped" data-position="bottom" data-tooltip="${txt}"><i class="tiny material-icons">person</i> ${txt}</span>`;
         },
         onInitialDrawComplete: function() {
             loadItems();
         },
-        // onMoving: function (item, callback) {
-        //     //TODO
-        // },
 
         onMove: function(item, callback) { // bound drag or range move
-            // var dialog = CMDBuildUI.util.Msg.openDialog(CMDBuildUI.model.lookups.Lookup.getLookupValueByCode('CustomComponents - Translations', 'CP-MaintPlanner-UpdateInstancePopUp-Title').get("_description_translation"), {
-            //     closable: false,
-            //     resizable: false,
-            //     bodyPadding: "10px 5px",
-            //     items: [{
-            //         padding: CMDBuildUI.util.helper.FormHelper.properties.padding,
-            //         html: Ext.String.format('{0} {1}?', CMDBuildUI.model.lookups.Lookup.getLookupValueByCode('CustomComponents - Translations', 'CP-MaintPlanner-UpdateInstancePopUp-Message').get("_description_translation"), CMDBuildUI.util.helper.FieldsHelper.renderTimestampField(item.end))
-            //     }],
-            //     buttons: [{
-            //         xtype: 'button',
-            //         text: CMDBuildUI.locales.Locales.common.actions.cancel,
-            //         ui: 'secondary-action-small',
-            //         listeners: {
-            //             click: function() {
-            //                 // close dialog and exit process
-            //                 dialog.destroy();
-            //                 callback(null);
-            //             }
-            //         }
-            //     }, {
-            //         xtype: 'button',
-            //         ui: 'management-action-small',
-            //         text: CMDBuildUI.locales.Locales.common.actions.save,
-            //         listeners: {
-            //             click: function(btn) {
-            //                 btn.disable();
-            //                 CMDBuildUI.util.api.Client.getRemoteProcessInstance(item._type, item._id).then(function(instance) {
-            //                     instance.set("DueExecEndDate", item.end);
-            //                     instance.set("_advance", false);
-            //                     instance.set("AutomaticConfig", false);
-            //                     instance.set("_activity", instance.get("_tasklist")[0]._id);
-            //                     instance.save({
-            //                         success: function(record, operation) {
-            //                             me._timeline.itemsData.remove(item.id)
-            //                             me.loadItems();
-            //                             dialog.destroy();
-            //                         },
-            //                         error: function(e) {
-            //                             btn.enable();
-            //                         }
-            //                     });
-            //                 }, function(e) {
-            //                     callback(null);
-            //                     CMDBuildUI.util.Notifier.showErrorMessage('Something went wrong while fetching the instance');
-            //                 });
-            //             }
-            //         }
-            //     }]
-            // });
+            item.data_inizio = item.start.toISOString();
+            item.data_fine = item.end.toISOString();
+            item.dipendente = item.group;
+
+            let currentItem = timeline.itemsData.get(item.id);
+            let msgTxt = "";
+            if (currentItem.group != item.group) {
+                msgTxt += ""
+            }
+
+            updateAgenda(item, function(data) {
+                loadItems();
+            }, function(e) {
+                let resp = e.responseJSON;
+                M.toast({ html: 'Errore: '+resp ? resp.message : e })
+            })
         }
     };
 
     function redraw() {
-        //get dipendenti list
-        var dipendentiProm = new Promise((resolve, reject) => {
-            $.ajax({
-                url: "/dipendenti",
-                method: "GET",
-                dataType: "json",
-                contentType: "application/json",
-                success: function(data) {
-                    resolve(data);
-                },
-                error: function(e) {
-                    reject(e);
-                }
-            })
-        });
-
-        Promise.all([
-            dipendentiProm
-        ]).then((data) => {
+        loadDipendenti(function(data) {
             // Create a Timeline
             timeline = timeline || new vis.Timeline(container, [], options);
-            var groups = data[0];
+            var groups = data;
             groups = groups.map((d) => { d["content"] = d.nome + " " + d.cognome; return d });
             timeline.setGroups(groups);
 
             timeline.on("scrollSide", debounce(loadItems, 200, false))
             timeline.on("rangechange", debounce(loadItems, 200, false))
-        })
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        });
     }
 
     function debounce(func, wait, immediate, extraArgs) {
@@ -404,40 +380,109 @@ $(document).ready(function() {
         vGroups = vGroups.map(function(g) {
             return Number(g);
         })
+        let params = {
+            start: start,
+            end: end,
+            groups: vGroups.join(",")
+        };
+        loadAgenda(params, function(data) {
+            var records = data || [];
+            records = records.map(function(r) {
+                r.start = new Date(r.data_inizio);
+                r.end = new Date(r.data_fine);
+                r.group = r.dipendente;
+                return r
+            });
+            var newRecords = records.filter(function(r) {
+                return !timeline.itemsData.get(r.id)
+            })
+            newRecords = newRecords.map(function(r) {
+                return r;
+            })
+            timeline.itemsData.add(newRecords);
 
-        $.ajax({
-            url: "/agenda",
-            method: "GET",
-            dataType: "json",
-            data: {
-                start: start,
-                end: end,
-                groups: vGroups.join(",")
-            },
-            contentType: "application/json",
-            success: function(data) {
-                var records = data || [];
-                records = records.map(function(r) {
-                    r.start = new Date(r.data_inizio);
-                    r.end = new Date(r.data_fine);
-                    r.group = r.dipendente;
-                    return r
-                });
-                var newRecords = records.filter(function(r) {
-                    return !timeline.itemsData.get(r.id)
-                })
-                newRecords = newRecords.map(function(r) {
-                    return r;
-                })
-                timeline.itemsData.add(newRecords);
-
-                if (callback) {
-                    callback();
-                }
-            },
-            error: function(e) {
-                throw e;
+            if (callback) {
+                callback();
             }
+            refreshTips();
+        }, function(e) {
+            let resp = e.responseJSON;
+            M.toast({ html: 'Errore: '+resp ? resp.message : e })
+        })
+    }
+
+    function openCreateOrUpdateAgenda(item, callback) {
+        var modal = M.Modal.getInstance($("#create-or-update-agenda"));
+
+        var dipendentiPromise = new Promise((resolve, reject) => loadDipendenti((data) => resolve(data), (err) => reject(err)));
+        var clientiPromise = new Promise((resolve, reject) => loadClienti((data) => resolve(data), (err) => reject(err)));
+        Promise.all([
+            dipendentiPromise, clientiPromise
+        ]).then(function(res) {
+            var dipendenti = res[0],
+                clienti = res[1];
+
+            var $dipselect = $(modal.el).find("select[name=dipendente]");
+            if (item) {
+                $dipselect.find('option').remove().end()
+                    .append('<option value="" disabled>Seleziona...</option>');
+            } else {
+                $dipselect.find('option').remove().end()
+                    .append('<option value="" disabled selected>Seleziona...</option>').val("");
+            }
+
+            $.each(dipendenti, function(i, item) {
+                $dipselect.append($('<option>', {
+                    value: item.id,
+                    text: item.nome
+                }));
+            });
+            $dipselect.trigger('contentChanged');
+
+
+            var $clientiselect = $(modal.el).find("select[name=cliente]");
+            clienti = clienti.data;
+            if (item) {
+                $clientiselect.find('option').remove().end()
+                    .append('<option value="" disabled>Seleziona...</option>');
+            } else {
+                $clientiselect.find('option').remove().end()
+                    .append('<option value="" disabled selected>Seleziona...</option>').val("");
+            }
+
+            $.each(clienti, function(i, item) {
+                $clientiselect.append($('<option>', {
+                    value: item.id,
+                    text: item.nome
+                }));
+            });
+            $clientiselect.trigger('contentChanged');
+
+            //preselect vals
+            if (item) {
+                $dipselect.each(function(j, opt) {
+                    $(this).removeAttr('selected', 'selected');
+                })
+                $dipselect.find("option[value='" + item.dipendente + "']").attr('selected', 'selected');
+                $dipselect.trigger('contentChanged');
+
+                $clientiselect.each(function(j, opt) {
+                    $(this).removeAttr('selected', 'selected');
+                })
+                $clientiselect.find("option[value='" + item.cliente + "']").attr('selected', 'selected');
+                $clientiselect.trigger('contentChanged');
+
+                $(modal.el).find("input[name=data_inizio]").flatpickr(flatpickrOpts).setDate(item.start);
+                $(modal.el).find("input[name=data_fine]").flatpickr(flatpickrOpts).setDate(item.end);
+                $(modal.el).find("input[name=id]").val(item.id);
+            }
+
+            modal.open()
+
+            if (callback) callback();
+
+        }).catch(function(e) {
+            debugger;
         })
     }
 

@@ -33,6 +33,7 @@
             <a href="" style="margin: 0 0 0 25px;" class="brand-logo"><i class="material-icons">cloud</i></a>
             <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li><a href="#create-or-update-agenda" id="create-or-update-agenda-btn">Crea evento</a></li>
                 <li><a href="#gestione-clienti" id="gestione-clienti-btn" class="modal-trigger">Gestisci clienti</a></li>
                 <li><a href="#rendicontazione-dipendente" id="rendicontazione-dipendente-btn">Rendicontazione dipendente</a></li>
                 <li><a href="#create-dipendente" class="modal-trigger">Crea nuovo dipendente</a></li>
@@ -46,6 +47,7 @@
     <script src="https://cdn.datatables.net/plug-ins/1.12.1/dataRender/datetime.js"></script>
     <script src="https://npmcdn.com/flatpickr/dist/flatpickr.min.js"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/it.js"></script>
+    <script type="text/javascript" src="javascripts/api.js"></script>
     <script type="text/javascript" src="javascripts/main.js"></script>
 
     <!-- create dip -->
@@ -112,10 +114,10 @@
     </div>
 
     <!-- agenda mgt-->
-    <div id="create-agenda" class="modal">
+    <div id="create-agenda-from-timeline" class="modal">
         <div class="modal-content">
             <div class="row">
-                <form class="col s12" id="create-agenda-form">
+                <form class="col s12" id="create-agenda-from-timeline-form">
                     <div class="row">
                         <div class="input-field col s6">
                             <input disabled name="dipendente_descr" placeholder="Mario Rossi" type="text">
@@ -137,6 +139,37 @@
                         </div>
                     </div>
                     <input name="dipendente" type="hidden" name="dipendente"></input>
+
+                    <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="create-or-update-agenda" class="modal">
+        <div class="modal-content">
+            <div class="row">
+                <form class="col s12" id="create-or-update-agenda-form">
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <select name="dipendente"></select>
+                            <label for="dipendente">Dipendente</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <select name="cliente"></select>
+                            <label for="cliente">Cliente</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input name="data_inizio" type="text" class="timepicker">
+                            <label for="data_inizio">Data inizio</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input name="data_fine" type="text" class="timepicker">
+                            <label for="data_fine">Data fine</label>
+                        </div>
+                    </div>
+                    <input name="id" type="hidden" name="id"></input>
 
                     <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
                 </form>
