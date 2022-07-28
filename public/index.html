@@ -1,224 +1,43 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
 
-<head>
-    <title>Timeline</title>
-    <script type="text/javascript" src="javascripts/vis-timeline-graph2d.min.js"></script>
-    <link href="stylesheets/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="stylesheets/materialize.min.css">
-    <link rel="stylesheet" href="stylesheets/style.css">
-    <script src="javascripts/materialize.min.js"></script>
-    <link href="stylesheets/Material-Icons-font.css" rel="stylesheet">
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
 
-    <style type="text/css">
-        html,
-        body {
-            margin: 0;
-            height: 100%;
-            width: 100%;
-        }
-        
-        #visualization {
-            width: 100%;
-            height: 92%;
-        }
-    </style>
-</head>
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
 
-<body>
-    <nav>
-        <div class="nav-wrapper">
-            <a href="" style="margin: 0 0 0 25px;" class="brand-logo"><i class="material-icons">cloud</i></a>
-            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="#create-or-update-agenda" id="create-or-update-agenda-btn">Crea evento</a></li>
-                <li><a href="#gestione-clienti" id="gestione-clienti-btn" class="modal-trigger">Gestisci clienti</a></li>
-                <li><a href="#rendicontazione-dipendente" id="rendicontazione-dipendente-btn">Rendicontazione dipendente</a></li>
-                <li><a href="#create-dipendente" class="modal-trigger">Crea nuovo dipendente</a></li>
-            </ul>
-        </div>
-    </nav>
-    <div id="visualization"></div>
-    <script type="text/javascript" src="javascripts/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
-    <script src="https://cdn.datatables.net/plug-ins/1.12.1/dataRender/datetime.js"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/flatpickr.min.js"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/it.js"></script>
-    <script type="text/javascript" src="javascripts/api.js"></script>
-    <script type="text/javascript" src="javascripts/main.js"></script>
-
-    <!-- create dip -->
-    <div id="create-dipendente" class="modal">
-        <div class="modal-content">
-            <div class="row">
-                <form class="col s12" id="create-dipendente-form">
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input placeholder="Mario" name="nome" type="text" class="validate">
-                            <label for="nome">First Name</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <input placeholder="Rossi" name="cognome" type="text" class="validate">
-                            <label for="cognome">Last Name</label>
-                        </div>
-                    </div>
-                    <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- gestione clienti -->
-    <div id="gestione-clienti" class="modal">
-        <div class="modal-content">
-            <a href="#create-cliente" class="modal-trigger btn waves-effect waves-light submit">Crea nuovo cliente</a>
-
-            <table id="clienti" class="display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Indirizzo</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Indirizzo</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
-    <div id="create-cliente" class="modal">
-        <div class="modal-content">
-            <div class="row">
-                <form class="col s12" id="create-cliente-form">
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input name="nome" type="text" class="validate" required="" aria-required="true">
-                            <label for="nome">Nome</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <input name="indirizzo" type="text" class="validate" required="" aria-required="true">
-                            <label for="indirizzo">Indirizzo</label>
-                        </div>
-                    </div>
-                    <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- agenda mgt-->
-    <div id="create-agenda-from-timeline" class="modal">
-        <div class="modal-content">
-            <div class="row">
-                <form class="col s12" id="create-agenda-from-timeline-form">
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input disabled name="dipendente_descr" placeholder="Mario Rossi" type="text">
-                            <label for="dipendente_descr">Dipendente</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <select name="cliente"></select>
-                            <label for="cliente">Cliente</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input name="data_inizio" type="text" class="timepicker">
-                            <label for="data_inizio">Data inizio</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <input name="data_fine" type="text" class="timepicker">
-                            <label for="data_fine">Data fine</label>
-                        </div>
-                    </div>
-                    <input name="dipendente" type="hidden" name="dipendente"></input>
-
-                    <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div id="create-or-update-agenda" class="modal">
-        <div class="modal-content">
-            <div class="row">
-                <form class="col s12" id="create-or-update-agenda-form">
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <select name="dipendente"></select>
-                            <label for="dipendente">Dipendente</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <select name="cliente"></select>
-                            <label for="cliente">Cliente</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input name="data_inizio" type="text" class="timepicker">
-                            <label for="data_inizio">Data inizio</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <input name="data_fine" type="text" class="timepicker">
-                            <label for="data_fine">Data fine</label>
-                        </div>
-                    </div>
-                    <input name="id" type="hidden" name="id"></input>
-
-                    <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="rendicontazione-dipendente" class="modal">
-        <div class="modal-content">
-            <div class="row">
-                <form class="col s12" id="rendicontazione-dipendente-form">
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <select name="dipendente"></select>
-                            <label for="dipendente">Dipendente</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input name="data_inizio" type="text" class="timepicker">
-                            <label for="data_inizio">Data inizio</label>
-                        </div>
-                        <div class="input-field col s6">
-                            <input name="data_fine" type="text" class="timepicker">
-                            <label for="data_fine">Data fine</label>
-                        </div>
-                    </div>
-                    <a class="btn waves-effect waves-light submit" type="submit" name="action">Submit</a>
-                </form>
-
-                <table id="rendicontazione-ore" class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Data Inizio</th>
-                            <th>Data Fine</th>
-                            <th>Ore</th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <th colspan="3" style="text-align:right">Totale:</th>
-                            <th style="text-align: right;"></th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
-</body>
-
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
 </html>
