@@ -1,26 +1,33 @@
 import React, { HtmlHTMLAttributes } from 'react';
-import { CssBaseline, Container } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { CoreLayoutProps } from 'react-admin';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { Error } from 'react-admin';
 import Header from './Header';
 
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles(() => ({
+    root: {
+        display: "flex",
+        flexFlow: "column",
+        height: "100vh"
+    }
+}));
+
 const Layout = (props: LayoutProps) => {
+    const classes = useStyles();
     const { children } = props;
     return (
-        <>
+        <div className={classes.root}>
             <CssBaseline />
             <Header />
-            <Container sx={{ maxWidth: { xl: 1280 } }}>
-                <main id="main-content">
-                    {/* @ts-ignore */}
-                    <ErrorBoundary FallbackComponent={Error}>
-                        {children}
-                    </ErrorBoundary>
-                </main>
-            </Container>
-        </>
+            {/* @ts-ignore */}
+            <ErrorBoundary FallbackComponent={Error}>
+                {children}
+            </ErrorBoundary>
+        </div>
     );
 };
 

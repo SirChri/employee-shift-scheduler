@@ -6,7 +6,8 @@ const { models } = require('./sequelize');
 
 const standardRoutes = {
     dipendente: models.dipendente,
-    cliente: models.cliente
+    cliente: models.cliente,
+    agenda: models.agenda
 };
 
 const app = express();
