@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require("cors");
 const { crud } = require('express-crud-router');
 const { models } = require('./sequelize');
+const customRoutes = require('./customRoutes')
 
 const standardRoutes = {
     dipendente: models.dipendente,
@@ -42,5 +43,8 @@ for (const [routeName, routeController] of Object.entries(standardRoutes)) {
             destroy: (id) => routeController.destroy({ where: { id } }),
         }))
 }
+
+//custom routes
+app.use('/api/', customRoutes);
 
 module.exports = app;

@@ -2,14 +2,12 @@
 import React from 'react';
 import { Admin, CustomRoutes, Resource, ListGuesser } from "react-admin";
 import { Route } from "react-router-dom";
-import simpleRest from "ra-data-simple-rest";
 import { DipendenteCreate, DipendenteEdit, DipendentiList } from "./dipendenti";
 import { ClienteCreate, ClienteList, ClienteEdit } from './clienti';
 import {theme} from '../theme';
 import Layout  from '../Layout';
 import TimelineView from './timeline';
-
-const dataProvider = simpleRest("http://localhost:5555/api");
+import dataProvider from '../dataProvider';
 
 const App = () => (
   <Admin 
