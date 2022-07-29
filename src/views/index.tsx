@@ -1,4 +1,5 @@
-// in src/admin/index.tsx
+// in src/admin/index.tss
+import React from 'react';
 import { Admin, CustomRoutes, Resource, ListGuesser } from "react-admin";
 import { Route } from "react-router-dom";
 import simpleRest from "ra-data-simple-rest";

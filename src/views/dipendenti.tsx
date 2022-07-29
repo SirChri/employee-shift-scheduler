@@ -1,3 +1,4 @@
+import React from 'react';
 import { Datagrid, DeleteButton, EditButton, List, TextField } from 'react-admin';
 import { Create, SimpleForm, TextInput, required } from 'react-admin';
 import { Edit } from 'react-admin';

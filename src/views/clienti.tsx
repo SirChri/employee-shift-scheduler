@@ -1,3 +1,4 @@
+import React from 'react';
 import { Create, Datagrid, Edit, EditButton, List, required, SimpleForm, TextField, TextInput, DeleteButton } from 'react-admin';
 
 export const ClienteList = () => (

@@ -6,21 +6,14 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Error } from 'react-admin';
 import Header from './Header';
 
-import { makeStyles } from '@material-ui/core/styles';
-
-const useStyles = makeStyles(() => ({
-    root: {
-        display: "flex",
-        flexFlow: "column",
-        height: "100vh"
-    }
-}));
-
 const Layout = (props: LayoutProps) => {
-    const classes = useStyles();
     const { children } = props;
     return (
-        <div className={classes.root}>
+        <div style={{
+            display: "flex",
+            flexFlow: "column",
+            height: "100vh"
+        }}>
             <CssBaseline />
             <Header />
             {/* @ts-ignore */}
