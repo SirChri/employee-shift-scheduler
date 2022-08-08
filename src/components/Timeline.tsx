@@ -55,6 +55,12 @@ export class Timeline extends Component<{}> {
 				item: 5,
 				axis: 0
 			},
+			/*groupTemplate: function(item) {
+				return `${item.cognome} ${item.nome}`
+			},
+			template: function(item) {
+				return `${item.cognome} ${item.nome}`
+			},*/
 			verticalScroll: true,
 			orientation: "top", // necessario affinchè la scrollbar verticale parta dall'alto
 			editable: {
@@ -77,7 +83,7 @@ export class Timeline extends Component<{}> {
 				disabled: true,
 			},
 			onInitialDrawComplete: function() {
-				me.loadItems()
+				me.loadGroups(() => setTimeout(() => me.loadItems(), 200))				
 			},
 	
 			onMove: function(item, callback) { // bound drag or range move
@@ -105,6 +111,27 @@ export class Timeline extends Component<{}> {
         };
     };
 
+	loadGroups = (callback: () => void) => {
+		let me = this;
+
+		fetch("/api/dipendente", {
+			method: "GET",
+		}).then(res => res.json())
+		.then(
+		  (result) => {
+			me.timeline.setGroups(result.map((r: any) => {
+				r.content = r.nome + " " + r.cognome;
+				return r;
+			}))
+		  })
+		.catch((e) => {
+		})
+		.finally(() => {
+			if (callback)
+				callback()
+		});
+	};
+
 	loadItems = () => {
 		let me = this;
 		let start = new Date(me.timeline.range.start).toISOString();
@@ -126,12 +153,21 @@ export class Timeline extends Component<{}> {
 		}).then(res => res.json())
 		.then(
 		  (result) => {
-			me.timeline.setItems(result.map((r: any) => {
-				r.start = r.start_date;
-				r.end = r.end_date;
-
-				return r;
-			}))
+			let records = result || [];
+            records = records.map((r:any) => {
+                r.start = new Date(r.start_date);
+                r.end = new Date(r.end_date);
+                r.group = r.dipendente_id;
+                return r
+            });
+            let newRecords = records.filter((r: any) => {
+                return !me.timeline.itemsData.get(r.id)
+            })
+            newRecords = newRecords.map((r: any) => {
+                return r;
+            })
+            me.timeline.itemsData.add(newRecords);
+			debugger;
 		  })
 		.catch((e) => {
 		})

@@ -16,8 +16,8 @@ export default function TimelineView() {
     const [create] = useCreate();
 
     const postSave = (data: any) => {
-        debugger;
         create('agenda', { data });
+        handleClose()
     };
 
     return (

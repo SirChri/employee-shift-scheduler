@@ -4,12 +4,14 @@ const { applyExtraSetup } = require("./extra-setup")
 // In a real app, you should keep the database connection URL as an environment variable.
 // But for this example, we will just use a local SQLite database.
 // const sequelize = new Sequelize(process.env.DB_CONNECTION_URL);
-const sequelize = new Sequelize('postgres://postgres:postgrespw@localhost:55000/myapp')
+const sequelize = new Sequelize(process.env.DB_STRING)
 
 const modelDefiners = [
     require('./models/agenda.model'),
     require('./models/dipendente.model'),
-    require('./models/cliente.model')
+    require('./models/cliente.model'),
+    require('./models/session.model'),
+    require('./models/user.model')
 ];
 
 // We define all models according to their files.
