@@ -3,8 +3,7 @@ const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
     var userSchema = sequelize.define(
-        "user",
-        {
+        "user", {
             id: {
                 field: "id",
                 autoIncrement: true,
@@ -20,6 +19,7 @@ module.exports = (sequelize) => {
                 type: DataTypes.STRING,
                 field: "name",
                 allowNull: false,
+                unique: true
             },
             email: {
                 type: DataTypes.STRING,
@@ -31,15 +31,14 @@ module.exports = (sequelize) => {
                 field: "salt",
                 allowNull: true,
             },
-        },
-        {
+        }, {
             hooks: {
-                beforeCreate: async (user, options, cb) => {
+                beforeCreate: async(user, options, cb) => {
                     return new Promise((resolve, reject) => {
                         if (user.password) {
                             user.salt = crypto.randomBytes(16).toString('hex');
 
-                            crypto.pbkdf2(user.password, user.salt, 310000, 32, 'sha256', function (err, hashedPassword) {
+                            crypto.pbkdf2(user.password, user.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
                                 if (err)
                                     return reject(err);
 
@@ -50,12 +49,12 @@ module.exports = (sequelize) => {
                         }
                     });
                 },
-                beforeUpdate: async (user) => {
+                beforeUpdate: async(user) => {
                     return new Promise((resolve, reject) => {
                         if (user.password) {
                             user.salt = crypto.randomBytes(16).toString('hex');
 
-                            crypto.pbkdf2(user.password, user.salt, 310000, 32, 'sha256', function (err, hashedPassword) {
+                            crypto.pbkdf2(user.password, user.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
                                 if (err)
                                     return reject(err);
 
@@ -80,7 +79,7 @@ module.exports = (sequelize) => {
             freezeTableName: true
         }
     );
-    userSchema.prototype.validPassword = async (password, hash) => {
+    userSchema.prototype.validPassword = async(password, hash) => {
         return crypto.timingSafeEqual(password, hash)
     };
 }

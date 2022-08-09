@@ -10,7 +10,7 @@ export const authProvider: AuthProvider = {
         return fetch(request)
             .then(response => {
                 if (response.status < 200 || response.status >= 300) {
-                    throw response.statusText;
+                    return Promise.reject(response.statusText);
                 }
                 return response.json();
             })
@@ -26,7 +26,7 @@ export const authProvider: AuthProvider = {
         return fetch(request)
             .then(response => {
                 if (response.status < 200 || response.status >= 300) {
-                    throw response.statusText;
+                    return Promise.resolve({redirectTo: '/login'});
                 }
                 return response.json();
             })
@@ -34,7 +34,14 @@ export const authProvider: AuthProvider = {
                 return Promise.resolve();
             });
     },
-    checkError: () => Promise.resolve(),
+    // called when the API returns an error
+    checkError: ({ status }) => {
+        if (status === 401 || status === 403) {
+            localStorage.removeItem('username');
+            return Promise.reject();
+        }
+        return Promise.resolve();
+    },
     checkAuth: () => {
         const request = new Request('/api/session', {
             method: 'GET',
@@ -43,7 +50,7 @@ export const authProvider: AuthProvider = {
         return fetch(request)
             .then(response => {
                 if (response.status < 200 || response.status >= 300) {
-                    throw response.statusText;
+                    return Promise.reject()
                 }
                 return response.json();
             })
@@ -51,5 +58,5 @@ export const authProvider: AuthProvider = {
                 return Promise.resolve();
             });
     },
-    getPermissions: () => Promise.reject('Unknown method')
+    getPermissions: () => Promise.reject(),
 };

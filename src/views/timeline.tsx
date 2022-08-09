@@ -22,7 +22,7 @@ export default function TimelineView() {
 
     return (
             <div style={{
-                margin: 15,
+                margin: "30px 0",
                 flex: "1 1 auto"
             }}>
                 <Timeline />

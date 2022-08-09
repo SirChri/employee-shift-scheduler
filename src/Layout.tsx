@@ -18,7 +18,14 @@ const Layout = (props: LayoutProps) => {
             <Header />
             {/* @ts-ignore */}
             <ErrorBoundary FallbackComponent={Error}>
-                {children}
+                <div style={{
+                    margin: "0 40px",
+                    height: "100vh",
+                    display: "flex",
+                    flexFlow: "column"
+                }}>
+                        {children}
+                </div>
             </ErrorBoundary>
         </div>
     );

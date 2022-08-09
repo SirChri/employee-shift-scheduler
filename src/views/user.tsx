@@ -19,7 +19,6 @@ export const UserEdit = () => (
             <TextInput disabled source="id" />
             <TextInput source="name" />
             <TextInput source="email" />
-            <TextInput source="password" />
         </SimpleForm>
     </Edit>
 );
@@ -27,7 +26,7 @@ export const UserEdit = () => (
 export const UserCreate = () => (
     <Create redirect="list">
         <SimpleForm>
-            <TextInput source="name" validate={[required()]}  label="Indirizzo" />
+            <TextInput source="name" validate={[required()]}  label="Nome" />
             <TextInput source="email" validate={[required()]}  label="Email" />
             <PasswordInput source="password" label="Password" />
         </SimpleForm>

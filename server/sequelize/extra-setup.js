@@ -1,4 +1,4 @@
-function applyExtraSetup(sequelize) {
+function applyRelations(sequelize) {
     const { agenda, cliente, dipendente } = sequelize.models;
 
     console.log(agenda, cliente, dipendente)
@@ -10,4 +10,4 @@ function applyExtraSetup(sequelize) {
     agenda.belongsTo(dipendente);
 }
 
-module.exports = { applyExtraSetup };
+module.exports = { applyRelations };

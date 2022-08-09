@@ -4,11 +4,12 @@ var LocalStrategy = require('passport-local');
 var crypto = require('crypto');
 const { models } = require('./sequelize');
 
+//set up passport auth
 passport.use(new LocalStrategy(function verify(username, password, cb) {
     models.user.findOne({ where: { name: username } }).then((user) => {
 
         if (!user) { return cb(null, false, { message: 'Incorrect username or password.' }); }
-        crypto.pbkdf2(password, user.salt, 310000, 32, 'sha256', function (err, hashedPassword) {
+        crypto.pbkdf2(password, user.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
             if (err) { return cb(err); }
 
             let match = crypto.timingSafeEqual(Buffer.from(user.password, "hex"), hashedPassword);
@@ -22,35 +23,37 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
 }));
 
 
-passport.serializeUser(function (user, cb) {
-    process.nextTick(function () {
+passport.serializeUser(function(user, cb) {
+    process.nextTick(function() {
         cb(null, { id: user.id, username: user.name });
     });
 });
 
-passport.deserializeUser(function (user, cb) {
-    process.nextTick(function () {
+passport.deserializeUser(function(user, cb) {
+    process.nextTick(function() {
         return cb(null, user);
     });
 });
 
 var router = express.Router();
 
+//passport occupies of authenticate the session
 router.post('/session', passport.authenticate('local', {}),
-    function (req, res) {
+    function(req, res) {
         if (req.user)
             res.status(200).json(req.session.passport)
         else
-            res.status(401)
+            res.status(403)
     });
 
-router.delete('/session', function (req, res) {
+//perform logount if session exists
+router.delete('/session', function(req, res) {
     if (!req.user)
-        return res.status(500).json({
+        return res.status(403).json({
             message: "no session"
         });
 
-    req.logout(function (err) {
+    req.logout(function(err) {
         if (err) {
             return res.status(500).json({
                 message: err
@@ -63,11 +66,12 @@ router.delete('/session', function (req, res) {
     });
 });
 
-router.get('/session', function (req, res) {
+//get current session if exists
+router.get('/session', function(req, res) {
     if (req.user)
         return res.status(200).json(req.user);
     else
-        return res.status(500).json({
+        return res.status(403).json({
             message: "no session"
         });
 });
