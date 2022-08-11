@@ -2,9 +2,10 @@ import { AuthProvider } from 'react-admin';
 
 export const authProvider: AuthProvider = {
     login: ({ username, password }) => {
-        const request = new Request('/api/session', {
+        const request = new Request(process.env.REACT_APP_SERVER_BASEURL+'/api/session', {
             method: 'POST',
             body: JSON.stringify({ username, password }),
+            credentials: 'include',
             headers: new Headers({ 'Content-Type': 'application/json' }),
         })
         return fetch(request)
@@ -19,8 +20,9 @@ export const authProvider: AuthProvider = {
             });
     },
     logout: () => {
-        const request = new Request('/api/session', {
+        const request = new Request(process.env.REACT_APP_SERVER_BASEURL+'/api/session', {
             method: 'DELETE',
+            credentials: 'include',
             headers: new Headers({ 'Content-Type': 'application/json' })
         })
         return fetch(request)
@@ -43,8 +45,9 @@ export const authProvider: AuthProvider = {
         return Promise.resolve();
     },
     checkAuth: () => {
-        const request = new Request('/api/session', {
+        const request = new Request(process.env.REACT_APP_SERVER_BASEURL+'/api/session', {
             method: 'GET',
+            credentials: 'include',
             headers: new Headers({ 'Content-Type': 'application/json' }),
         })
         return fetch(request)

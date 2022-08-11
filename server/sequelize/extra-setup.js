@@ -1,8 +1,6 @@
 function applyRelations(sequelize) {
     const { agenda, cliente, dipendente } = sequelize.models;
 
-    console.log(agenda, cliente, dipendente)
-
     cliente.hasMany(agenda);
     agenda.belongsTo(cliente);
 

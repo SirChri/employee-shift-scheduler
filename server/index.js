@@ -3,14 +3,16 @@ dotenv.config();
 
 const app = require('./app');
 const sequelize = require('./sequelize');
+const { seeder } = require('./seeder');
 
-const PORT = process.env.SERVER_PORT || 5555;
+const PORT = process.env.NODE_DOCKER_PORT || 5555;
 
 async function assertDatabaseConnectionOk() {
     console.log(`Checking database connection...`);
     try {
         await sequelize.authenticate();
         await sequelize.sync();
+        await seeder(sequelize);
         console.log('Database connection OK!');
     } catch (error) {
         console.log('Unable to connect to the database:');

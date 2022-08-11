@@ -1,7 +1,17 @@
 const { Sequelize } = require('sequelize');
-const { applyRelations } = require("./extra-setup")
+const { applyRelations } = require("./extra-setup");
 
-const sequelize = new Sequelize(process.env.DB_STRING)
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_USER_PW, {
+    host: process.env.DB_HOST,
+    dialect: 'postgres',
+    port: process.env.DB_PORT || 5432,
+    pool: {
+        max: 5,
+        min: 0,
+        idle: 10000
+    }
+});
+
 
 const modelDefiners = [
     require('./models/agenda.model'),
