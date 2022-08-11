@@ -1,5 +1,5 @@
 import React from 'react';
-import { Create, Datagrid, Edit, EditButton, List, required, SimpleForm, TextField, TextInput, DeleteButton, PasswordInput } from 'react-admin';
+import { Create, Datagrid, Edit, EditButton, List, required, SimpleForm, TextField, TextInput, DeleteButton, PasswordInput, CloneButton } from 'react-admin';
 
 export const UserList = () => (
     <List>
@@ -9,6 +9,7 @@ export const UserList = () => (
             <TextField source="email" />
             <EditButton />
             <DeleteButton />
+            <CloneButton />
         </Datagrid>
     </List>
 );

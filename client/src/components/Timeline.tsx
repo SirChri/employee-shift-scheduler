@@ -1,48 +1,34 @@
-import React, { Component, useEffect, useState } from 'react';
+import React, { Component, useEffect, useRef, useState } from 'react';
 import { DataSet } from 'vis-data';
-import { Timeline as VisTimeline } from 'vis-timeline/standalone';
+import { Timeline as VisTimeline } from 'vis-timeline';
 import type {
 	TimelineGroup,
 	TimelineItem
 } from 'vis-timeline/types';
 import 'vis-timeline/styles/vis-timeline-graph2d.min.css';
 
+import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
-import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useGetList } from 'react-admin';
+import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useGetList, useCreate } from 'react-admin';
+import Fab from '@mui/material/Fab';
 
 const divStyle = {
 	width: "100%",
 	height: "100%",
 };
 
+const Timeline1 = () => {
+    const ref = useRef(null);
+    const [create] = useCreate();
+    const [open, setOpen] = useState(false);
+    const [props, setProps] = useState({
+        record: undefined
+    });
+    const timeline = useRef<any|null>(null);
 
-export class Timeline extends Component<{}> {
-	public timeline!: any;
-	public readonly items: DataSet<TimelineItem>;
-	public readonly groups: DataSet<TimelineGroup>;
-
-	state = {
-		open: false,
-		record: undefined
-	}
-
-	#ref = React.createRef<HTMLDivElement>();
-
-	constructor(props: {} | Readonly<{}>) {
-		super(props);
-
-		this.items = new DataSet<TimelineItem>();
-		this.groups = new DataSet<TimelineGroup>();
-	}
-
-	componentWillUnmount() {
-		this.timeline.destroy();
-	}
-
-	componentDidMount() {
-		var me = this;
-		this.timeline = new VisTimeline(this.#ref.current!, this.items, this.groups, {
+    useEffect(() => {
+        timeline.current = new VisTimeline(ref.current!, [], [], {
 			stack: true,
 			stackSubgroups: false,
 			zoomKey: 'ctrlKey',
@@ -72,27 +58,38 @@ export class Timeline extends Component<{}> {
 			multiselect: false,
 			onRemove: function (item, callback) { },
 			onUpdate: function (item, callback) {
-				me.handleOpen(item);
-			},
-			onAdd: function (item, callback) {
-				me.handleOpen(item);
+				handleOpen(item);
 			},
 			xss: {
 				disabled: true,
 			},
 			onInitialDrawComplete: function () {
-				me.loadGroups(() => setTimeout(() => me.loadItems(), 200))
+                //debugger;
+				loadGroups(() => setTimeout(() => loadItems(), 200))
 			},
 
 			onMove: function (item, callback) { // bound drag or range move
 			}
 		});
 
-		this.timeline.on("scrollSide", this.debounce(this.loadItems, 200, false, null))
-		this.timeline.on("rangechange", this.debounce(this.loadItems, 200, false, null))
-	}
+		timeline.current.on("scrollSide", debounce(loadItems, 200, false, null))
+		timeline.current.on("rangechange", debounce(loadItems, 200, false, null))
+      }, []);
 
-	debounce = (func: any, wait: number | undefined, immediate: any, extraArgs: any) => {
+    const postSave = (data: any) => {
+        create('agenda', { data }, {
+            onError: (error) => {
+                // error is an instance of Error.
+            },
+            onSettled: (data, error) => {
+                handleClose();
+                loadItems();
+            },
+        });
+        
+    }
+
+    const debounce = (func: any, wait: number | undefined, immediate: any, extraArgs: any) => {
 		var timeout: any;
 
 		return () => {
@@ -109,16 +106,14 @@ export class Timeline extends Component<{}> {
 		};
 	};
 
-	loadGroups = (callback: () => void) => {
-		let me = this;
-
+	const loadGroups = (callback: () => void) => {
 		fetch(process.env.REACT_APP_SERVER_BASEURL + "/api/dipendente", {
 			method: "GET",
 			credentials: 'include',
 		}).then(res => res.json())
 			.then(
 				(result) => {
-					me.timeline.setGroups(result.map((r: any) => {
+					timeline.current.setGroups(result.map((r: any) => {
 						r.content = r.nome + " " + r.cognome;
 						return r;
 					}))
@@ -131,11 +126,12 @@ export class Timeline extends Component<{}> {
 			});
 	};
 
-	loadItems = () => {
-		let me = this;
-		let start = new Date(me.timeline.range.start).toISOString();
-		let end = new Date(me.timeline.range.end).toISOString();
-		let vGroups = me.timeline.getVisibleGroups();
+	const loadItems = () => {
+        if (!timeline.current) return;
+
+		let start = new Date(timeline.current.range.start).toISOString();
+		let end = new Date(timeline.current.range.end).toISOString();
+		let vGroups = timeline.current.getVisibleGroups();
 
 		vGroups = vGroups.map((g: any) => {
 			return Number(g);
@@ -161,13 +157,12 @@ export class Timeline extends Component<{}> {
 						return r
 					});
 					let newRecords = records.filter((r: any) => {
-						return !me.timeline.itemsData.get(r.id)
+						return !timeline.current.itemsData.get(r.id)
 					})
 					newRecords = newRecords.map((r: any) => {
 						return r;
 					})
-					me.timeline.itemsData.add(newRecords);
-					debugger;
+					timeline.current.itemsData.add(newRecords);
 				})
 			.catch((e) => {
 			})
@@ -175,44 +170,55 @@ export class Timeline extends Component<{}> {
 			});
 	}
 
-	handleOpen = (record: any) => {
-		this.setState({
-			open: true,
-			record: record
-		})
-	}
+    const handleClose = () => {
+        setOpen(false)
+        setProps({
+            record: undefined
+        })
+    }
 
-	handleClose = () => {
-		this.setState({
-			open: false,
-			record: undefined
-		})
-	}
-	render() {
-		return (
-			<div style={divStyle}>
-				<div ref={this.#ref} style={divStyle} />
-				<Dialog
-					open={this.state.open}
-					onClose={this.handleClose}
-				>
-					<Box>
-						<SimpleForm record={this.state.record} resource="agenda">
-							<TextInput source="descrizione" validate={[required()]} fullWidth label="Descrizione" />
-							<TextInput source="indirizzo" validate={[required()]} label="Indirizzo" />
-							<DateTimeInput source="start_date" label="Data inizio" />
-							<DateTimeInput source="end_date" label="Data fine" />
-							<ReferenceInput source="dipendente_id" reference="dipendente" label="Dipendente">
-								<SelectInput optionText="nome" />
-							</ReferenceInput>
-							<ReferenceInput source="cliente_id" reference="cliente" label="Cliente">
-								<SelectInput optionText="descrizione" />
-							</ReferenceInput>
-						</SimpleForm>
-					</Box>
-				</Dialog>
+    const handleOpen = (record: any = null) => {
+        if (record && record.id) {
+            setProps({
+                record: record
+            })
+        }
+        
+        setOpen(true)
+    }
 
-			</div>
-		)
-	}
+    return (
+        <div style={divStyle}>
+            <div ref={ref} style={divStyle} />
+            <Dialog
+                open={open}
+                onClose={handleClose}
+            >
+                <Box>
+                    <SimpleForm
+                    {...(props.record != null ? {record: props.record} : {})}
+                    resource="agenda"
+                    onSubmit={postSave}>
+                        <DateTimeInput source="start_date" label="Data inizio" />
+                        <DateTimeInput source="end_date" label="Data fine" />
+                        <ReferenceInput source="dipendente_id" reference="dipendente" label="Dipendente">
+                            <SelectInput optionText="nome" />
+                        </ReferenceInput>
+                        <ReferenceInput source="cliente_id" reference="cliente" label="Cliente">
+                            <SelectInput optionText="descrizione" />
+                        </ReferenceInput>
+                    </SimpleForm>
+                </Box>
+            </Dialog>
+            <Fab color="primary" aria-label="add" style={{
+                right: 20,
+                position: 'fixed',
+                bottom: 10
+            }} onClick={handleOpen}>
+                <AddIcon />
+            </Fab>
+        </div>
+    );
 }
+
+export default Timeline1;
