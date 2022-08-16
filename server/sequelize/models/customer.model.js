@@ -1,18 +1,42 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-    sequelize.define('cliente', {
+    sequelize.define('customer', {
         id: {
             primaryKey: true,
             autoIncrement: true,
             type: DataTypes.BIGINT
         },
-        descrizione: {
+        vat: {
             allowNull: false,
             type: DataTypes.STRING,
         },
-        indirizzo: {
+        name: {
             allowNull: false,
+            type: DataTypes.STRING
+        },
+        address: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        zipcode: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        city: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        phone: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        email: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        website: {
+            allowNull: true,
             type: DataTypes.STRING
         }
     }, {
@@ -34,6 +58,6 @@ module.exports = (sequelize) => {
         freezeTableName: true,
 
         // define the table's name
-        tableName: 'cliente'
+        tableName: 'customer'
     });
 };

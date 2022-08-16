@@ -51,8 +51,8 @@ app.use(authenticationMiddleware(allowUrl));
 
 // We define the standard REST APIs for each route (if they exist).
 const standardRoutes = {
-    dipendente: models.dipendente,
-    cliente: models.cliente,
+    employee: models.employee,
+    customer: models.customer,
     agenda: models.agenda,
     user: models.user
 };

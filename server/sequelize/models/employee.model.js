@@ -1,29 +1,35 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-    sequelize.define('dipendente', {
+    sequelize.define('employee', {
         id: {
             primaryKey: true,
             autoIncrement: true,
             type: DataTypes.BIGINT
         },
-        nome: {
+        name: {
             allowNull: false,
-            type: DataTypes.STRING,
-            validate: {
-                // We require usernames to have length of at least 3, and
-                // only use letters, numbers and underscores.
-                is: /^\w{3,}$/
-            }
+            type: DataTypes.STRING
         },
-        cognome: {
+        surname: {
             allowNull: false,
-            type: DataTypes.STRING,
-            validate: {
-                // We require usernames to have length of at least 3, and
-                // only use letters, numbers and underscores.
-                is: /^\w{3,}$/
-            }
+            type: DataTypes.STRING
+        },
+        number: {
+            allowNull: false,
+            type: DataTypes.STRING
+        },
+        phone: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        email: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
+        active: {
+            allowNull: true,
+            type: DataTypes.BOOLEAN
         }
     }, {
         // don't add the timestamp attributes (updatedAt, createdAt)
@@ -44,6 +50,6 @@ module.exports = (sequelize) => {
         freezeTableName: true,
 
         // define the table's name
-        tableName: 'dipendente'
+        tableName: 'employee'
     });
 };

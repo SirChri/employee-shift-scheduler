@@ -1,11 +1,11 @@
 function applyRelations(sequelize) {
-    const { agenda, cliente, dipendente } = sequelize.models;
+    const { agenda, customer, employee } = sequelize.models;
 
-    cliente.hasMany(agenda);
-    agenda.belongsTo(cliente);
+    customer.hasMany(agenda);
+    agenda.belongsTo(customer);
 
-    dipendente.hasMany(agenda);
-    agenda.belongsTo(dipendente);
+    employee.hasMany(agenda);
+    agenda.belongsTo(employee);
 }
 
 module.exports = { applyRelations };

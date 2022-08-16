@@ -15,18 +15,18 @@ module.exports = (sequelize) => {
             allowNull: false,
             type: DataTypes.DATE
         },
-        cliente_id: {
+        customer_id: {
             type: DataTypes.BIGINT,
             references: {
-                model: 'cliente',
+                model: 'customer',
                 key: 'id'
             }
         },
-        dipendente_id: {
+        employee_id: {
             type: DataTypes.BIGINT,
             allowNull: false,
             references: {
-                model: 'dipendente',
+                model: 'employee',
                 key: 'id'
             }
         },
