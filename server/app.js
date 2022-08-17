@@ -54,7 +54,8 @@ const standardRoutes = {
     employee: models.employee,
     customer: models.customer,
     agenda: models.agenda,
-    user: models.user
+    user: models.user,
+    sysconfig: models.sysconfig
 };
 
 for (const [routeName, routeController] of Object.entries(standardRoutes)) {

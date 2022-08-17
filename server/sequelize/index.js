@@ -18,7 +18,8 @@ const modelDefiners = [
     require('./models/employee.model'),
     require('./models/customer.model'),
     require('./models/session.model'),
-    require('./models/user.model')
+    require('./models/user.model'),
+    require('./models/sysconfig.model')
 ];
 
 // We define all models according to their files.
