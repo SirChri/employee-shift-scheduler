@@ -8,10 +8,10 @@ const Header = () => {
     const location = useLocation();
 
     let currentPath = '/';
-    if (!!matchPath('/cliente/*', location.pathname)) {
-        currentPath = '/cliente';
-    } else if (!!matchPath('/dipendente/*', location.pathname)) {
-        currentPath = '/dipendente';
+    if (!!matchPath('/customer/*', location.pathname)) {
+        currentPath = '/customer';
+    } else if (!!matchPath('/employee/*', location.pathname)) {
+        currentPath = '/employee';
     } else if (!!matchPath('/timeline/*', location.pathname)) {
         currentPath = '/timeline';
     } else if (!!matchPath('/user/*', location.pathname)) {
@@ -44,19 +44,19 @@ const Header = () => {
                                 value="/timeline"
                             />
                             <Tab
-                                label={'Clienti'}
+                                label={'Customers'}
                                 component={Link}
-                                to="/cliente"
-                                value="/cliente"
+                                to="/customer"
+                                value="/customer"
                             />
                             <Tab
-                                label={'Dipendenti'}
+                                label={'Employees'}
                                 component={Link}
-                                to="/dipendente"
-                                value="/dipendente"
+                                to="/employee"
+                                value="/employee"
                             />
                             <Tab
-                                label={'Utenti'}
+                                label={'Users'}
                                 component={Link}
                                 to="/user"
                                 value="/user"

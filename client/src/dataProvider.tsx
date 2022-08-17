@@ -14,6 +14,12 @@ const baseDataProvider = simpleRest(baseUrl + "/api", fetchJson);
 
 export const dataProvider = {
 	...baseDataProvider,
+	getSystemConfigs: () => {
+		return fetch(baseUrl + "/api/sysconfig", {
+			method: "GET",
+			credentials: 'include',
+		}).then(res => res.json())
+	},
 	getTimelineData: (params: {start: string, end: string, groups: any}) => {
 		return fetch(baseUrl + "/api/timeline-agenda?" + new URLSearchParams(params), {
 			method: "GET",
@@ -21,7 +27,7 @@ export const dataProvider = {
 		}).then(res => res.json())
 	},
 	getTimelineGroups: () => {
-		return fetch(baseUrl + "/api/dipendente", {
+		return fetch(baseUrl + "/api/employee", {
 			method: "GET",
 			credentials: 'include',
 		}).then(res => res.json())

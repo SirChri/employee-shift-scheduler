@@ -43,21 +43,21 @@ const Timeline1 = () => {
 			stack: true,
 			stackSubgroups: false,
 			zoomKey: 'ctrlKey',
-			zoomMin: 3600000 * 24,
+			zoomMin: 3600000,
 			height: '100%',
 			groupHeightMode: 'fixed',
 			margin: {
 				item: 5,
-				axis: 5
+				axis: 10
 			},
 			groupTemplate: function (item,element,data) {
-				const txt = item.nome + " " + item.cognome;
+				const txt = item.name + " " + item.surname;
 				const root = item.root ? item.root : ReactDOM.createRoot(
 					element as HTMLElement
 				);
 				root.render(
 					<Tooltip title={txt} followCursor>
-						<div>
+						<div style={{width:"100%"}}>
 							<BadgeIcon /> {txt}
 						</div>
 					</Tooltip>
@@ -70,20 +70,21 @@ const Timeline1 = () => {
 			template: function (item, element, data) {
 				let tooltip = item.start.toLocaleString("it-IT") + " - " + item.end.toLocaleString("it-IT"); //TODO: make locale dynamic
 				console.log(tooltip, item)
+
 				const root = item.root ? item.root : ReactDOM.createRoot(
 					element as HTMLElement
 				);
 				root.render(
 					<Tooltip title={tooltip} followCursor>
-						<div>
-							{item.cliente_id}
+						<div style={{height: 40}}>
+							{item.customer_id}
 						</div>
 					</Tooltip>
 				);
 
 				item.root = root;
 
-				return '<div>.</div>';
+				return `<div style="height: 40px">.</div>`;
 			},
 			verticalScroll: true,
 			orientation: "top", // necessario affinchè la scrollbar verticale parta dall'alto
@@ -93,6 +94,18 @@ const Timeline1 = () => {
 				updateTime: true,
 				updateGroup: true
 			},
+			hiddenDates: [{
+				start: '2017-03-04 00:00:00',
+				end: '2017-03-06 00:00:00',
+				repeat: 'weekly'
+			  },
+			  // hide outside of 9am to 5pm - use any 2 days and repeat daily
+			  {
+				start: '2017-03-04 19:00:00',
+				end: '2017-03-05 07:00:00',
+				repeat: 'daily'
+			  }
+			],
 			locale: 'it_IT', //TODO: make locale dynamic
 			selectable: true,
 			multiselect: false,
@@ -114,7 +127,7 @@ const Timeline1 = () => {
 					id: recId,
 					start_date: item.start,
 					end_date: item.end,
-					dipendente_id: item.group
+					employee_id: item.group
 				}
 
 				update('agenda', { id: recId, data: data }, {
@@ -188,7 +201,7 @@ const Timeline1 = () => {
 				(result) => {
 					groups.current.clear();
 					groups.current.add(result.map((r: any) => {
-						r.content = r.nome + " " + r.cognome;
+						r.content = r.name + " " + r.surname;
 						return r;
 					}))
 				})
@@ -223,13 +236,15 @@ const Timeline1 = () => {
 					records = records.map((r: any) => {
 						r.start = new Date(r.start_date);
 						r.end = new Date(r.end_date);
-						r.group = r.dipendente_id;
+						r.group = r.employee_id;
 						return r
 					});
 					let newRecords = records.filter((r: any) => {
 						return !items.current.get(r.id)
 					})
 					newRecords = newRecords.map((r: any) => {
+						r.className = "color"+Number(r.group) % 3;
+
 						return r;
 					})
 					items.current.add(newRecords);
@@ -272,10 +287,10 @@ const Timeline1 = () => {
 						onSubmit={postSave}>
 						<DateTimeInput source="start_date" label="Data inizio" />
 						<DateTimeInput source="end_date" label="Data fine" />
-						<ReferenceInput source="dipendente_id" reference="dipendente" label="Dipendente">
-							<SelectInput optionText="nome" />
+						<ReferenceInput source="employee_id" reference="employee" label="Employee">
+							<SelectInput optionText="name" />
 						</ReferenceInput>
-						<ReferenceInput source="cliente_id" reference="cliente" label="Cliente">
+						<ReferenceInput source="customer_id" reference="customer" label="Customer">
 							<SelectInput optionText="descrizione" />
 						</ReferenceInput>
 					</SimpleForm>

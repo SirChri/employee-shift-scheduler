@@ -11,3 +11,20 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Timeline Palette */
+.vis-item.color1 {
+  background-color: #219ebc;
+  border-color: green;
+}
+.vis-item.color2 {
+  background-color: #8ecae6;
+  border-color: green;
+}
+.vis-item.color3 {
+  background-color: #ffb703;
+  border-color: green;
+}
+.vis-item .vis-item-content {
+  width: 100%
+}
