@@ -30,7 +30,35 @@ module.exports = (sequelize) => {
                 key: 'id'
             }
         },
+        hours: {
+            type: DataTypes.DECIMAL
+        }
     }, {
+        hooks: {
+            beforeCreate: async(agenda, options, cb) => {
+                return new Promise((resolve, reject) => {
+                    let start = new Date(agenda.start_date),
+                        end = new Date(agenda.end_date),
+                        hrs = (Math.abs(end - start) / 3.6e6).toFixed(2);
+                    
+                    agenda.hours = hrs;
+
+                    return resolve(agenda, options);
+                });
+            },
+            beforeUpdate: async(agenda, options) => {
+                return new Promise((resolve, reject) => {
+                    let start = new Date(agenda.start_date),
+                        end = new Date(agenda.end_date),
+                        hrs = (Math.abs(end - start) / 3.6e6).toFixed(2);
+                    
+                    agenda.hours = hrs;
+
+                    return resolve(agenda, options);
+                });
+            }
+        },
+        
         // don't add the timestamp attributes (updatedAt, createdAt)
         //timestamps: false,
 

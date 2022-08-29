@@ -9,6 +9,7 @@ const auth = require('./session')
 var logger = require('morgan');
 var passport = require('passport');
 var session = require('express-session');
+const { Op } = require("sequelize");
 
 const models = sequelize.models;
 var SequelizeStore = require('connect-session-sequelize')(session.Store);
@@ -61,8 +62,27 @@ const standardRoutes = {
 for (const [routeName, routeController] of Object.entries(standardRoutes)) {
     app.use(
         crud(`${baseApiUrl}/${routeName}`, {
-            getList: ({ filter, limit, offset, order }) =>
-                routeController.findAndCountAll({ limit, offset, order, where: filter }),
+            getList: ({ filter, limit, offset, order, opts  }) => {
+                /*console.log("rrrr ", opts)
+
+                const operators = { '_gte': '>=', '_lte': '<=', '_neq': '!=' };
+                console.log("xxx ", filter)
+                let where = {};
+
+                const filters = Object.keys(filter).map(key => {
+                    const operator = operators[key.slice(-4)];
+                    const seqOp = operator ? Op[operator] : Op.and;
+                    const field = operator ? key.slice(0, -4) : key;
+                    where[field] = {
+                        [seqOp]: filter[key]
+                    };
+
+                    return key;
+                });
+                console.log("yyy ", where)*/
+
+                return routeController.findAndCountAll({ limit, offset, order, where: filter })
+            },
             getOne: (id) => routeController.findByPk(id),
             create: (body) =>
                 routeController.create(body),

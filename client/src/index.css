@@ -28,3 +28,6 @@ code {
 .vis-item .vis-item-content {
   width: 100%
 }
+.vis-label .vis-inner {
+  min-height: 70px;
+}

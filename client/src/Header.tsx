@@ -16,6 +16,8 @@ const Header = () => {
         currentPath = '/timeline';
     } else if (!!matchPath('/user/*', location.pathname)) {
         currentPath = '/user';
+    } else if (!!matchPath('/agenda/*', location.pathname)) {
+        currentPath = '/agenda';
     }
 
     return (
@@ -56,10 +58,10 @@ const Header = () => {
                                 value="/employee"
                             />
                             <Tab
-                                label={'Users'}
+                                label={'Summary'}
                                 component={Link}
-                                to="/user"
-                                value="/user"
+                                to="/agenda"
+                                value="/agenda"
                             />
                         </Tabs>
                     </Box>
@@ -73,6 +75,12 @@ const Header = () => {
                         />
                         <UserMenu>
                             <Logout />
+                            <Tab
+                                label={'Users'}
+                                component={Link}
+                                to="/user"
+                                value="/user"
+                            />
                         </UserMenu>
                     </Box>
                 </Box>

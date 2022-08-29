@@ -15,6 +15,10 @@ module.exports = (sequelize) => {
             allowNull: false,
             type: DataTypes.STRING
         },
+        fullname: {
+            allowNull: true,
+            type: DataTypes.STRING
+        },
         number: {
             allowNull: false,
             type: DataTypes.STRING
@@ -32,6 +36,22 @@ module.exports = (sequelize) => {
             type: DataTypes.BOOLEAN
         }
     }, {
+        hooks: {
+            beforeCreate: async(employee, options, cb) => {
+                return new Promise((resolve, reject) => {
+                    employee.fullname = employee.name + " " + employee.surname;
+
+                    return resolve(employee, options);
+                });
+            },
+            beforeUpdate: async(employee) => {
+                return new Promise((resolve, reject) => {
+                    employee.fullname = employee.name + " " + employee.surname;
+                    
+                    return resolve(employee, options);
+                });
+            },
+        },
         // don't add the timestamp attributes (updatedAt, createdAt)
         //timestamps: false,
 
