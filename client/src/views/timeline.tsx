@@ -145,8 +145,10 @@ export default function TimelineView() {
 						callback(null);
 					},
 					onSettled: (data, error) => {
+						items.current.remove(recId)
+						handleClose();
+						loadItems(undefined);
 						notify("Item updated") //TODO: make locale dynamic
-						callback(item);
 					}
 				})
 			}

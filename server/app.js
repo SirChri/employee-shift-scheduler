@@ -87,7 +87,7 @@ for (const [routeName, routeController] of Object.entries(standardRoutes)) {
             create: (body) =>
                 routeController.create(body),
             update: (id, body) => {
-                const r = routeController.update(body, { where: { id } });
+                const r = routeController.update(body, { where: { id }, individualHooks: true });
                 return body;
             },
             destroy: (id) => routeController.destroy({ where: { id } }),

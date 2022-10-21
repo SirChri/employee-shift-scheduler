@@ -54,6 +54,8 @@ module.exports = (sequelize) => {
                     
                     agenda.hours = hrs;
 
+                    console.log("ooo ", hrs);
+
                     return resolve(agenda, options);
                 });
             }

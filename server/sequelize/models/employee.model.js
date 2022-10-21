@@ -44,7 +44,7 @@ module.exports = (sequelize) => {
                     return resolve(employee, options);
                 });
             },
-            beforeUpdate: async(employee) => {
+            beforeUpdate: async(employee, options) => {
                 return new Promise((resolve, reject) => {
                     employee.fullname = employee.name + " " + employee.surname;
                     
