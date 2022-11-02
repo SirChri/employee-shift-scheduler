@@ -14,6 +14,8 @@ const Header = () => {
         currentPath = '/employee';
     } else if (!!matchPath('/timeline/*', location.pathname)) {
         currentPath = '/timeline';
+    } else if (!!matchPath('/calendar/*', location.pathname)) {
+        currentPath = '/calendar';
     } else if (!!matchPath('/user/*', location.pathname)) {
         currentPath = '/user';
     } else if (!!matchPath('/agenda/*', location.pathname)) {
@@ -39,12 +41,18 @@ const Header = () => {
                             indicatorColor="secondary"
                             textColor="inherit"
                         >
-                            <Tab
-                                label={'Timeline'}
-                                component={Link}
-                                to="/timeline"
-                                value="/timeline"
-                            />
+                        <Tab
+                            label={'Timeline'}
+                            component={Link}
+                            to="/timeline"
+                            value="/timeline"
+                        />
+                        <Tab
+                            label={'Calendar'}
+                            component={Link}
+                            to="/calendar"
+                            value="/calendar"
+                        />
                             <Tab
                                 label={'Customers'}
                                 component={Link}

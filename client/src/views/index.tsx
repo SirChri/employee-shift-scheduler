@@ -13,6 +13,7 @@ import { UserList, UserEdit, UserCreate } from './user'
 import NotFound from './notfound'
 import { QueryClient } from 'react-query';
 import  EmployeeSummaryList from './empsummary';
+import CalendarView from './calendar';
 
 const App = () => (
   <Admin 
@@ -29,6 +30,7 @@ const App = () => (
     <Resource name="user" list={UserList} edit={UserEdit} create={UserCreate} />
       <CustomRoutes>
             <Route path="/timeline" element={<TimelineView />}/>
+            <Route path="/calendar" element={<CalendarView />}/>
         </CustomRoutes>
         
   </Admin>
