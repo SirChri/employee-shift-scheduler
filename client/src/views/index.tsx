@@ -17,16 +17,13 @@ import CalendarView from './calendar';
 
 const App = () => (
   <Admin 
-    catchAll={NotFound}
     dataProvider={dataProvider} 
     authProvider={authProvider}
     theme={theme} 
     layout={Layout}
-    requireAuth
   >
     <Resource name="employee" list={EmployeeList} edit={EmployeeEdit} create={EmployeeCreate}/>
     <Resource name="customer" list={CustomerList} edit={CustomerEdit} create={CustomerCreate}/>
-    <Resource name="agenda" list={EmployeeSummaryList} />
     <Resource name="user" list={UserList} edit={UserEdit} create={UserCreate} />
       <CustomRoutes>
             <Route path="/timeline" element={<TimelineView />}/>

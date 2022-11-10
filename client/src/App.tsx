@@ -7,7 +7,7 @@ import { Loading } from 'react-admin';
 import systemConfigs from './sysConfigs';
 
 const App = () => {
-    const [sysconfigs, setSysConfigs] = useState<any | null>(null)
+    /*const [sysconfigs, setSysConfigs] = useState<any | null>(null)
 
     useEffect(() => {
         dataProvider.getSystemConfigs()
@@ -26,7 +26,7 @@ const App = () => {
         return (
             <Loading />
         )
-    }
+    }*/
 
     return (
         <MyApp />

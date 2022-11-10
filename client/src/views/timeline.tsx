@@ -17,6 +17,8 @@ import { Tooltip, Typography } from '@mui/material';
 import ReactDOM from 'react-dom/client';
 import BadgeIcon from '@mui/icons-material/Badge';
 
+import {textColorOnHEXBg} from '../utils/Utilities';
+
 const divStyle = {
 	width: "100%",
 	height: "100%",
@@ -253,7 +255,7 @@ export default function TimelineView() {
 						return !items.current.get(r.id)
 					})
 					newRecords = newRecords.map((r: any) => {
-						r.className = "color" + Number(r.group) % 3;
+						r.style = `background: ${r.color}; color: ${textColorOnHEXBg(r.color)}`;
 
 						return r;
 					})
@@ -308,6 +310,11 @@ export default function TimelineView() {
 					onClose={handleClose}
 				>
 					<Box>
+						<Typography variant="h6" sx={{
+							padding: "10px 20px"
+						}}>
+							{props.record && props.record["id"] ? "Modifica evento" : "Crea evento"}
+						</Typography>
 						<SimpleForm
 							{...props}
 							resource="agenda"

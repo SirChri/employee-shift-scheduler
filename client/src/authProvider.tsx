@@ -61,5 +61,5 @@ export const authProvider: AuthProvider = {
                 return Promise.resolve();
             });
     },
-    getPermissions: () => Promise.reject(),
+    getPermissions: () => Promise.resolve(),
 };
