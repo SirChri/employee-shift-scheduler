@@ -16,3 +16,11 @@ export const textColorOnHEXBg = (hex: string) => {
 
     return (rgb.r*0.299 + rgb.g*0.587 + rgb.b*0.114) > 186 ? "#000000" : "#ffffff";
 }
+
+export const eventTypeEnum = {
+    "j": "Job",
+    "v": "Vacation",
+    "p": "Permit",
+    "s": "Sickness",
+    "m": "Makeup"
+}

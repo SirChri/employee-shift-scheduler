@@ -3,12 +3,12 @@ import FullCalendar from '@fullcalendar/react' // must go before plugins
 import { EventInput } from '@fullcalendar/react';
 import timeGrid from '@fullcalendar/timegrid' // a plugin!
 import dayGrid from '@fullcalendar/daygrid'
-import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography } from '@mui/material';
+import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography, IconButton } from '@mui/material';
 import { dataProvider } from '../dataProvider'
 import interactionPlugin from '@fullcalendar/interaction';
 import Dialog from '@mui/material/Dialog';
 import AddIcon from '@mui/icons-material/Add';
-import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useNotify, useCreate, useUpdate, useGetList, Loading } from 'react-admin';
+import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useNotify, useCreate, useUpdate, useGetList, Loading, FormDataConsumer } from 'react-admin';
 import Fab from '@mui/material/Fab';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -17,7 +17,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import CircleIcon from '@mui/icons-material/Circle';
 import { group } from 'console';
-import { textColorOnHEXBg } from '../utils/Utilities';
+import { textColorOnHEXBg, eventTypeEnum } from '../utils/Utilities';
 
 const divStyle = {
 	width: "100%",
@@ -44,7 +44,8 @@ export default function CalendarView() {
 
 	const postSave = (data: any) => {
 		if (!props || !props.record || !props.record["id"]) {
-			create('agenda', { data }, {
+			data.customer_id = data.customer_id === "" ? null : data.customer_id;
+			create('event', { data }, {
 				onError: (error) => {
 					notify("Error on creation") //TODO: make locale dynamic
 					console.error(error)
@@ -56,7 +57,8 @@ export default function CalendarView() {
 			});
 		} else {
 			const recId = props.record["id"];
-			update('agenda', { id: recId, data: data }, {
+			data.customer_id = data.customer_id === "" ? null : data.customer_id;
+			update('event', { id: recId, data: data }, {
 				onError: (error) => {
 					notify("Error on updating") //TODO: make locale dynamic
 					console.error(error)
@@ -167,35 +169,24 @@ export default function CalendarView() {
 						}}
 						>
 						<CardContent sx={{ pt: 1 }}>
-							<nav aria-label="main">
-								<List>
-									{data!.map(record => {
-										const labelId = `checkbox-list-label-${record.id}`;
-										return (
-											<ListItem disablePadding key={record.id}>
-												<ListItemButton role={undefined} onClick={handleToggle(record.id)} dense>
-													<ListItemIcon>
-														<Checkbox
-															edge="start"
-															checked={unchecked.indexOf(record.id) === -1}
-															tabIndex={-1}
-															disableRipple
-															style ={{
-																color: record.color,
-															}}
-															inputProps={{ 'aria-labelledby': labelId }}
-														/>
-													</ListItemIcon>
-													<ListItemText
-														id={labelId}
-														primary={record.fullname}
-														secondary={"Matricola: " + record.number} />
-												</ListItemButton>
-											</ListItem>
-										)
-									}
-									)}
-								</List>
+							<nav aria-label="secondary">
+							<List>
+								<ListItem
+									secondaryAction={
+										<IconButton edge="end" aria-label="delete">
+										  <CircleIcon />
+										</IconButton>
+									  }>
+									<ListItemText
+									primary="Single-line item"
+									/>
+								</ListItem>
+								<ListItem>
+									<ListItemText
+									primary="Single-line item"
+									/>
+								</ListItem>
+							</List>
 							</nav>
 						</CardContent>
 					</Card>
@@ -249,7 +240,7 @@ export default function CalendarView() {
 								employee_id: item.extendedProps.employee_id
 							}
 
-							update('agenda', { id: recId, data: data }, {
+							update('event', { id: recId, data: data }, {
 								onError: (error) => {
 									notify("Error on updating") //TODO: make locale dynamic
 									console.error(error)
@@ -280,7 +271,7 @@ export default function CalendarView() {
 									e.start = e.start_date;
 									e.end = e.end_date;
 									e.textColor = textColorOnHEXBg(e.color),
-									e.title = e.customer_descr;
+									e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
 								})
 
 								return events;
@@ -298,17 +289,30 @@ export default function CalendarView() {
 								{props.record && props.record["id"] ? "Modifica evento" : "Crea evento"}
 							</Typography>
 							<SimpleForm
+								shouldUnregister
+								sanitizeEmptyValues
 								{...props}
-								resource="agenda"
+								resource="event"
 								onSubmit={postSave}>
 								<DateTimeInput source="start_date" label="Data inizio" />
 								<DateTimeInput source="end_date" label="Data fine" />
+								<SelectInput source="type" choices={
+									Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
+								} 
+								defaultValue="j"/>
 								<ReferenceInput source="employee_id" reference="employee" label="Employee">
 									<SelectInput optionText="fullname" />
 								</ReferenceInput>
-								<ReferenceInput source="customer_id" reference="customer" label="Customer">
-									<SelectInput optionText="name" />
-								</ReferenceInput>
+								<FormDataConsumer>
+								{({ formData, ...rest }) => formData.type === "j" &&
+									<ReferenceInput 
+									source="customer_id" 
+									reference="customer" 
+									label="Customer">
+										<SelectInput optionText="name" />
+									</ReferenceInput>
+								}
+							</FormDataConsumer>
 							</SimpleForm>
 						</Box>
 					</Dialog>

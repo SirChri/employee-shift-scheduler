@@ -18,8 +18,8 @@ const Header = () => {
         currentPath = '/calendar';
     } else if (!!matchPath('/user/*', location.pathname)) {
         currentPath = '/user';
-    } else if (!!matchPath('/agenda/*', location.pathname)) {
-        currentPath = '/agenda';
+    } else if (!!matchPath('/event/*', location.pathname)) {
+        currentPath = '/event';
     }
 
     return (
@@ -68,8 +68,8 @@ const Header = () => {
                             <Tab
                                 label={'Summary'}
                                 component={Link}
-                                to="/agenda"
-                                value="/agenda"
+                                to="/event"
+                                value="/event"
                             />
                         </Tabs>
                     </Box>

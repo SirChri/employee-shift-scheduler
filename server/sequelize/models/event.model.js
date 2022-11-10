@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-    sequelize.define('agenda', {
+    sequelize.define('event', {
         id: {
             primaryKey: true,
             autoIncrement: true,
@@ -14,6 +14,10 @@ module.exports = (sequelize) => {
         end_date: {
             allowNull: false,
             type: DataTypes.DATE
+        },
+        type: {
+            type: DataTypes.ENUM("j", "v", "p", "s", "m"),
+            defaultValue: "j",
         },
         customer_id: {
             type: DataTypes.BIGINT,
@@ -35,26 +39,26 @@ module.exports = (sequelize) => {
         }
     }, {
         hooks: {
-            beforeCreate: async(agenda, options, cb) => {
+            beforeCreate: async(event, options, cb) => {
                 return new Promise((resolve, reject) => {
-                    let start = new Date(agenda.start_date),
-                        end = new Date(agenda.end_date),
+                    let start = new Date(event.start_date),
+                        end = new Date(event.end_date),
                         hrs = (Math.abs(end - start) / 3.6e6).toFixed(2);
                     
-                    agenda.hours = hrs;
+                    event.hours = hrs;
 
-                    return resolve(agenda, options);
+                    return resolve(event, options);
                 });
             },
-            beforeUpdate: async(agenda, options) => {
+            beforeUpdate: async(event, options) => {
                 return new Promise((resolve, reject) => {
-                    let start = new Date(agenda.start_date),
-                        end = new Date(agenda.end_date),
+                    let start = new Date(event.start_date),
+                        end = new Date(event.end_date),
                         hrs = (Math.abs(end - start) / 3.6e6).toFixed(2);
                     
-                    agenda.hours = hrs;
+                    event.hours = hrs;
 
-                    return resolve(agenda, options);
+                    return resolve(event, options);
                 });
             }
         },
@@ -77,6 +81,6 @@ module.exports = (sequelize) => {
         freezeTableName: true,
 
         // define the table's name
-        tableName: 'agenda'
+        tableName: 'event'
     });
 };

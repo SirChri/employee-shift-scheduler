@@ -35,6 +35,10 @@ module.exports = (sequelize) => {
             allowNull: false,
             type: DataTypes.STRING
         },
+        weekhrs: {
+            allowNull: true,
+            type: DataTypes.DOUBLE
+        },
         active: {
             allowNull: true,
             type: DataTypes.BOOLEAN

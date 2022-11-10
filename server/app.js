@@ -54,7 +54,7 @@ app.use(authenticationMiddleware(allowUrl));
 const standardRoutes = {
     employee: models.employee,
     customer: models.customer,
-    agenda: models.agenda,
+    event: models.event,
     user: models.user,
     sysconfig: models.sysconfig
 };

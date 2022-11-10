@@ -12,7 +12,7 @@ const postFilters = [
 ];
 
 export default function EmployeeSummaryList() {
-    const { data, total, isLoading } = useGetList('agenda', {
+    const { data, total, isLoading } = useGetList('event', {
         pagination: { page: 1, perPage: 10 },
         sort,
     });

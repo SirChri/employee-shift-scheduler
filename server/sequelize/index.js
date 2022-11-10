@@ -14,7 +14,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 
 
 const modelDefiners = [
-    require('./models/agenda.model'),
+    require('./models/event.model'),
     require('./models/employee.model'),
     require('./models/customer.model'),
     require('./models/session.model'),

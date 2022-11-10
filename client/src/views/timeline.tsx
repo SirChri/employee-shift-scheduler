@@ -140,7 +140,7 @@ export default function TimelineView() {
 					employee_id: item.group
 				}
 
-				update('agenda', { id: recId, data: data }, {
+				update('event', { id: recId, data: data }, {
 					onError: (error) => {
 						notify("Error on updating") //TODO: make locale dynamic
 						console.error(error)
@@ -162,7 +162,7 @@ export default function TimelineView() {
 
 	const postSave = (data: any) => {
 		if (!props || !props.record) {
-			create('agenda', { data }, {
+			create('event', { data }, {
 				onError: (error) => {
 					notify("Error on creation") //TODO: make locale dynamic
 					console.error(error)
@@ -175,7 +175,7 @@ export default function TimelineView() {
 			});
 		} else {
 			const recId = props.record["id"];
-			update('agenda', { id: recId, data: data }, {
+			update('event', { id: recId, data: data }, {
 				onError: (error) => {
 					notify("Error on updating") //TODO: make locale dynamic
 					console.error(error)
@@ -317,10 +317,18 @@ export default function TimelineView() {
 						</Typography>
 						<SimpleForm
 							{...props}
-							resource="agenda"
+							resource="event"
 							onSubmit={postSave}>
 							<DateTimeInput source="start_date" label="Data inizio" />
 							<DateTimeInput source="end_date" label="Data fine" />
+								<SelectInput source="type" choices={[
+									{ id: 'j', name: 'Lavoro' },
+									{ id: 'v', name: 'Ferie' },
+									{ id: 'p', name: 'Permesso' },
+									{ id: 's', name: 'Malattia' },
+									{ id: 'm', name: 'Recupero' },
+								]}
+								defaultValue="j" />
 							<ReferenceInput source="employee_id" reference="employee" label="Employee">
 								<SelectInput optionText="fullname" />
 							</ReferenceInput>

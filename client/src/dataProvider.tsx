@@ -21,7 +21,7 @@ export const dataProvider = {
 		}).then(res => res.json())
 	},
 	getTimelineData: (params: {start: string, end: string, groups: any}) => {
-		return fetch(baseUrl + "/api/timeline-agenda?" + new URLSearchParams(params), {
+		return fetch(baseUrl + "/api/timeline-event?" + new URLSearchParams(params), {
 			method: "GET",
 			credentials: 'include',
 		}).then(res => res.json())
