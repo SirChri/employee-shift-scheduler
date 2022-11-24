@@ -20,7 +20,7 @@ export const dataProvider = {
 			credentials: 'include',
 		}).then(res => res.json())
 	},
-	getTimelineData: (params: {start: string, end: string, groups: any}) => {
+	getTimelineData: (params: {start: string, end: string, groups: any} | {id: string}) => {
 		return fetch(baseUrl + "/api/timeline-event?" + new URLSearchParams(params), {
 			method: "GET",
 			credentials: 'include',

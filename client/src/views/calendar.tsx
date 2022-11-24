@@ -41,6 +41,12 @@ export default function CalendarView() {
 		end: null
 	})
 
+	const [popover, setPopover] = useState<any>({
+		open: false,
+		record: undefined,
+		anchorEl: null
+	})
+
 	const [unchecked, setUnchecked] = useState([] as number[]);
 	const [events, setEvents] = useState([] as any);
 
@@ -85,33 +91,53 @@ export default function CalendarView() {
 	if (isLoading) { return <Loading />; }
 	if (error) { return <p>ERROR</p>; }
 
-	const postSave = (data: any) => {
-		if (!dialog || !dialog.record || !dialog.record["id"]) {
-			data.customer_id = data.customer_id === "" ? null : data.customer_id;
-			create('event', { data }, {
-				onError: (error) => {
-					notify("Error on creation") //TODO: make locale dynamic
-					console.error(error)
-				},
-				onSettled: (data, error) => {
-					handleClose();
-					notify("Item succesfully created") //TODO: make locale dynamic
-				},
-			});
-		} else {
-			const recId = dialog.record["id"];
-			data.customer_id = data.customer_id === "" ? null : data.customer_id;
-			update('event', { id: recId, data: data }, {
-				onError: (error) => {
-					notify("Error on updating") //TODO: make locale dynamic
-					console.error(error)
-				},
-				onSettled: (data, error) => {
-					handleClose();
+	const eventEditSubmit = (data:any) => {
+		const recId = popover.record["id"];
+		data.customer_id = data.customer_id === "" ? null : data.customer_id;
+		update('event', { id: recId, data: data }, {
+			onError: (error) => {
+				notify("Error on updating") //TODO: make locale dynamic
+				console.error(error)
+			},
+			onSettled: (data, error) => {
+				// 1. Make a shallow copy of the items
+				let items = [...events];
+				items = items.filter(it => it.id != popover.record["id"]);
+				
+				dataProvider.getTimelineData({id: popover.record["id"]})
+					.then((rec) => {
+					rec.start = rec.start_date;
+					rec.end = rec.end_date;
+					rec.allDay = rec.all_day;
+					rec.textColor = textColorOnHEXBg(rec.color),
+					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
+
+					items.push(rec);
+					setEvents(items);
 					notify("Item updated") //TODO: make locale dynamic
-				},
-			})
-		}
+
+					setPopover({
+						open: false,
+						record: null,
+						anchorEl: null
+					});
+				})
+			},
+		})
+	}
+
+	const postSave = (data: any) => {
+		data.customer_id = data.customer_id === "" ? null : data.customer_id;
+		create('event', { data }, {
+			onError: (error) => {
+				notify("Error on creation") //TODO: make locale dynamic
+				console.error(error)
+			},
+			onSettled: (data, error) => {
+				handleClose();
+				notify("Item succesfully created") //TODO: make locale dynamic
+			},
+		});
 	}
 
 	const handleToggle = (value: number) => () => {
@@ -285,14 +311,18 @@ export default function CalendarView() {
 						eventClick={(info) => {
 							const item = info.event.toJSON();
 
-							handleOpen({
-								id: item.id,
-								start_date: item.start,
-								all_day: item.extendedProps.all_day,
-								end_date: item.end,
-								type: item.extendedProps.type,
-								employee_id: item.extendedProps.employee_id,
-								customer_id: item.extendedProps.customer_id
+							setPopover({
+								open: true,
+								anchorEl: info.el,
+								record: {
+									id: item.id,
+									start_date: item.start,
+									all_day: item.extendedProps.all_day,
+									end_date: item.end,
+									type: item.extendedProps.type,
+									employee_id: item.extendedProps.employee_id,
+									customer_id: item.extendedProps.customer_id									
+								}
 							})
 						}}
 						eventChange={(info) => {
@@ -334,11 +364,11 @@ export default function CalendarView() {
 							<Typography variant="h6" sx={{
 								padding: "10px 20px"
 							}}>
-								{dialog.record && dialog.record["id"] ? "Modifica evento" : "Crea evento"}
+								{"Crea evento"}
 							</Typography>
 							<SimpleForm
-								sanitizeEmptyValues
 								{...dialog}
+								sanitizeEmptyValues
 								resource="event"
 								onSubmit={postSave}>
 								<BooleanInput source="all_day" label="Tutto il giorno" />
@@ -373,6 +403,59 @@ export default function CalendarView() {
 					</Fab>
 				</Box>
 			</Box>
+			<Popover
+				open={popover.open}
+				anchorEl={popover.anchorEl}
+				onClose={() => {
+					setPopover({
+						open: false,
+						record: null,
+						anchorEl: null
+					});
+				}}
+				anchorOrigin={{
+				  vertical: 'bottom',
+				  horizontal: 'left',
+				}}
+				transformOrigin={{
+				  vertical: 'center',
+				  horizontal: 'right',
+				}}
+			>
+				<Box>
+					<Typography variant="h6" sx={{
+						padding: "10px 20px"
+					}}>
+						{popover.record && popover.record["id"] ? "Modifica evento" : "Crea evento"}
+					</Typography>
+					<SimpleForm
+						sanitizeEmptyValues
+						record={popover.record}
+						resource="event"
+						onSubmit={eventEditSubmit}>
+						<BooleanInput source="all_day" label="Tutto il giorno" />
+						<DateTimeInput source="start_date" label="Data inizio" />
+						<DateTimeInput source="end_date" label="Data fine" />
+						<SelectInput source="type" choices={
+							Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
+						} 
+						defaultValue="j"/>
+						<ReferenceInput source="employee_id" reference="employee" label="Employee"  validate={required()} >
+							<SelectInput optionText="fullname" />
+						</ReferenceInput>
+						<FormDataConsumer>
+						{({ formData, ...rest }) => formData.type === "j" &&
+							<ReferenceInput 
+							source="customer_id" 
+							reference="customer" 
+							label="Customer">
+								<SelectInput optionText="name" />
+							</ReferenceInput>
+						}
+					</FormDataConsumer>
+					</SimpleForm>
+				</Box>
+			</Popover>
 		</div >
 	)
 }
