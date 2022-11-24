@@ -15,6 +15,9 @@ module.exports = (sequelize) => {
             allowNull: false,
             type: DataTypes.DATE
         },
+        all_day: {
+            type: DataTypes.BOOLEAN
+        },
         type: {
             type: DataTypes.ENUM("j", "v", "p", "s", "m"),
             defaultValue: "j",

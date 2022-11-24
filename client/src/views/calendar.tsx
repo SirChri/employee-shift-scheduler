@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
-import FullCalendar from '@fullcalendar/react' // must go before plugins
+import FullCalendar, { EventContentArg } from '@fullcalendar/react' // must go before plugins
 import { EventInput } from '@fullcalendar/react';
 import timeGrid from '@fullcalendar/timegrid' // a plugin!
 import dayGrid from '@fullcalendar/daygrid'
-import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography, IconButton } from '@mui/material';
+import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography, IconButton, Popover, Button } from '@mui/material';
 import { dataProvider } from '../dataProvider'
 import interactionPlugin from '@fullcalendar/interaction';
 import Dialog from '@mui/material/Dialog';
 import AddIcon from '@mui/icons-material/Add';
-import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useNotify, useCreate, useUpdate, useGetList, Loading, FormDataConsumer } from 'react-admin';
+import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useNotify, useCreate, useUpdate, useGetList, Loading, FormDataConsumer, BooleanInput, useDelete } from 'react-admin';
 import Fab from '@mui/material/Fab';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -16,6 +16,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import CircleIcon from '@mui/icons-material/Circle';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { group } from 'console';
 import { textColorOnHEXBg, eventTypeEnum } from '../utils/Utilities';
 
@@ -29,21 +30,63 @@ export default function CalendarView() {
 	const calendarRef = useRef(null);
 	const [create] = useCreate();
 	const [update] = useUpdate();
+	const [_delete] = useDelete();
 	const notify = useNotify();
-	const [open, setOpen] = useState(false);
-	const [props, setProps] = useState<any>({
+	const [dialog, setDialog] = useState<any>({
+		open: false,
 		record: undefined
 	});
-	const [unchecked, setUnchecked] = React.useState([] as number[]);
+	const [window, setWindow] = useState<any>({
+		start: null,
+		end: null
+	})
+
+	const [unchecked, setUnchecked] = useState([] as number[]);
+	const [events, setEvents] = useState([] as any);
 
 	const { data, total, isLoading, error } = useGetList(
 		'employee'
 	);
+
+	// load events
+	useEffect(() => {
+		if (!data || !window.start)
+			return;
+
+		let groups = data!.map(e => e.id);
+		groups = groups.filter(g => !unchecked.includes(g))
+
+		let params = {
+			"start": window.start,
+			"end": window.end,
+			"groups": unchecked.length > 0 ? groups : "all"
+		};
+
+		dataProvider.getTimelineData(params)
+			.then((events) => {
+				events.map((e:any) => {
+					e.start = e.start_date;
+					e.end = e.end_date;
+					e.allDay = e.all_day;
+					e.textColor = textColorOnHEXBg(e.color),
+					e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
+
+					return e;
+				})
+
+				//TODO: improve merge capabilities
+				setEvents(events);
+			})
+			.catch(err => {
+				console.error(err);
+			});
+	}, [window, data, unchecked])
+
 	if (isLoading) { return <Loading />; }
 	if (error) { return <p>ERROR</p>; }
 
 	const postSave = (data: any) => {
-		if (!props || !props.record || !props.record["id"]) {
+		if (!dialog || !dialog.record || !dialog.record["id"]) {
 			data.customer_id = data.customer_id === "" ? null : data.customer_id;
 			create('event', { data }, {
 				onError: (error) => {
@@ -56,7 +99,7 @@ export default function CalendarView() {
 				},
 			});
 		} else {
-			const recId = props.record["id"];
+			const recId = dialog.record["id"];
 			data.customer_id = data.customer_id === "" ? null : data.customer_id;
 			update('event', { id: recId, data: data }, {
 				onError: (error) => {
@@ -85,28 +128,23 @@ export default function CalendarView() {
 	};
 
 	const handleClose = () => {
-		setOpen(false)
-		setProps({})
+		setDialog({
+			open: false,
+			record: {}
+		})
 	}
 
 	const handleOpen = (record: any = null) => {
-		if (record && record.id) {
-			setProps({
-				record: {
-					id: record.id,
-					start_date: record.start_date,
-					end_date: record.end_date,
-					employee_id: record.employee_id,
-					customer_id: record.customer_id
-				}
-			})
-		} else {
-			setProps({})
+		let props: any = {
+			open: true
 		}
+		if (record && record.id) {
+			props["record"] = record;
+		} 
 
-		setOpen(true)
+		setDialog(props)
 	}
-
+	console.log("render");
 	return (
 		<div id="calendar-container" style={{
 			margin: "30px 0"
@@ -207,28 +245,55 @@ export default function CalendarView() {
 						}}
 						initialView="timeGridWeek"
 						select={(info) => {
-							setProps({
+							setDialog({
+								open: true,
 								record: {
 									start_date: info.startStr,
-									end_date: info.endStr
+									end_date: info.endStr,
+									all_day: info.allDay || false
 								}
 							})
-
-							setOpen(true)
 						}}
+						eventRemove={(info) => {
+							const item = info.event.toJSON();
+							_delete('event', item.id, {
+								onError: (error) => {
+									notify("Error on deleting") //TODO: make locale dynamic
+									console.error(error)
+								},
+								onSettled: (data, error) => {
+									notify("Item removed") //TODO: make locale dynamic
+								},
+							});
+						}}
+						eventContent={(eventContent: EventContentArg) => {
+							if (eventContent.timeText)
+								return (
+									<>
+									{eventContent.timeText} <br />
+									<i>{eventContent.event.title}</i>
+									</>
+								)
+
+							return (
+								<>
+								<i>{eventContent.event.title}</i>
+								</>
+							)
+						}}
+
 						eventClick={(info) => {
 							const item = info.event.toJSON();
-							setProps({
-								record: {
-									id: item.id,
-									start_date: item.start,
-									end_date: item.end,
-									employee_id: item.extendedProps.employee_id,
-									customer_id: item.extendedProps.customer_id
-								}
-							})
 
-							setOpen(true)
+							handleOpen({
+								id: item.id,
+								start_date: item.start,
+								all_day: item.extendedProps.all_day,
+								end_date: item.end,
+								type: item.extendedProps.type,
+								employee_id: item.extendedProps.employee_id,
+								customer_id: item.extendedProps.customer_id
+							})
 						}}
 						eventChange={(info) => {
 							const item = info.event.toJSON();
@@ -236,8 +301,10 @@ export default function CalendarView() {
 							let data = {
 								id: recId,
 								start_date: item.start,
+								type: item.extendedProps.type,
 								end_date: item.end,
-								employee_id: item.extendedProps.employee_id
+								employee_id: item.extendedProps.employee_id,
+								customer_id: item.extendedProps.customer_id
 							}
 
 							update('event', { id: recId, data: data }, {
@@ -251,56 +318,37 @@ export default function CalendarView() {
 							})
 						}}
 						editable={true}
-						eventSources={[{
-							events: function (info, successCallback, failureCallback) {
-								let groups = data!.map(e => e.id);
-								groups = groups.filter(g => !unchecked.includes(g))
-
-								let params = {
-									"start": info.start.toISOString(),
-									"end": info.end.toISOString(),
-									"groups": unchecked.length > 0 ? groups : "all"
-								};
-
-								dataProvider.getTimelineData(params)
-									.then((data) => successCallback(data))
-									.catch(err => failureCallback(err));
-							},
-							success: (events: Array<any>) => {
-								events.forEach(e => {
-									e.start = e.start_date;
-									e.end = e.end_date;
-									e.textColor = textColorOnHEXBg(e.color),
-									e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
-								})
-
-								return events;
-							}
-						}]}
+						events={events}
+						datesSet={(dateInfo) => {
+							setWindow({
+								start: dateInfo.start.toISOString(),
+								end: dateInfo.end.toISOString()
+							})
+						}}
 					/>
 					<Dialog
-						open={open}
+						open={dialog.open}
 						onClose={handleClose}
 					>
 						<Box>
 							<Typography variant="h6" sx={{
 								padding: "10px 20px"
 							}}>
-								{props.record && props.record["id"] ? "Modifica evento" : "Crea evento"}
+								{dialog.record && dialog.record["id"] ? "Modifica evento" : "Crea evento"}
 							</Typography>
 							<SimpleForm
-								shouldUnregister
 								sanitizeEmptyValues
-								{...props}
+								{...dialog}
 								resource="event"
 								onSubmit={postSave}>
+								<BooleanInput source="all_day" label="Tutto il giorno" />
 								<DateTimeInput source="start_date" label="Data inizio" />
 								<DateTimeInput source="end_date" label="Data fine" />
 								<SelectInput source="type" choices={
 									Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
 								} 
 								defaultValue="j"/>
-								<ReferenceInput source="employee_id" reference="employee" label="Employee">
+								<ReferenceInput source="employee_id" reference="employee" label="Employee"  validate={required()} >
 									<SelectInput optionText="fullname" />
 								</ReferenceInput>
 								<FormDataConsumer>
