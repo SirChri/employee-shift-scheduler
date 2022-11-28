@@ -207,7 +207,7 @@ export default function CalendarView() {
 					<Card 
 						sx={{
 							overflowY: "auto",
-							height: "55vh"
+							height: "85vh"
 						}}
 					>
 						<CardContent sx={{ pt: 1 }}>
@@ -240,35 +240,6 @@ export default function CalendarView() {
 									}
 									)}
 								</List>
-							</nav>
-						</CardContent>
-					</Card>
-					<Card
-						sx={{
-							overflowY: "auto",
-							height: "27vh",
-							marginTop: "25px"
-						}}
-						>
-						<CardContent sx={{ pt: 1 }}>
-							<nav aria-label="secondary">
-							<List>
-								<ListItem
-									secondaryAction={
-										<IconButton edge="end" aria-label="delete">
-										  <CircleIcon />
-										</IconButton>
-									  }>
-									<ListItemText
-									primary="Single-line item"
-									/>
-								</ListItem>
-								<ListItem>
-									<ListItemText
-									primary="Single-line item"
-									/>
-								</ListItem>
-							</List>
 							</nav>
 						</CardContent>
 					</Card>

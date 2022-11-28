@@ -15,7 +15,7 @@ const PostCreateToolbar = (props:any) => {
             <SaveButton
                 label="Save"
             />
-            <IconButton aria-label="delete" onClick={() => {
+            <IconButton sx={{ marginLeft: "auto" }} aria-label="delete" onClick={() => {
                 props.onRemoveClick()
             }}>
                 <DeleteIcon />
