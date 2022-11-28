@@ -34,8 +34,8 @@ router.get('/timeline-event', function(req, res, next) {
                     e."color"
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
-                LEFT JOIN employee e on a.employee_id = e.id
-                WHERE employee_id = ANY (:groups ::bigint[]) AND ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end))`, {
+                JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
+                WHERE employee_id = ANY (:groups ::bigint[]) AND ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL`, {
                     replacements: params,
                     type: QueryTypes.SELECT
                 }).then((data, meta) => {
@@ -51,8 +51,8 @@ router.get('/timeline-event', function(req, res, next) {
                     e."color"
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
-                LEFT JOIN employee e on a.employee_id = e.id
-                WHERE ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end))`, {
+                JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
+                WHERE ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL`, {
                     replacements: params,
                     type: QueryTypes.SELECT
                 }).then((data, meta) => {
@@ -75,8 +75,8 @@ router.get('/timeline-event-hrs', function(req, res, next) {
         `SELECT 
             e.id, e.fullname, e.color, e.weekhrs, sum(coalesce(a.hours, 0))
         FROM employee e
-        LEFT JOIN event a on a.employee_id = e.id AND ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end))
-        WHERE e.active
+        LEFT JOIN event a on a.employee_id = e.id AND ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL
+        WHERE e.active AND e.deleted_at IS NULL
         GROUP BY e.id, e.fullname, e.color, e.weekhrs`, {
             replacements: params,
             type: QueryTypes.SELECT

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useId, useRef, useState } from 'react'
 import FullCalendar, { EventContentArg } from '@fullcalendar/react' // must go before plugins
 import { EventInput } from '@fullcalendar/react';
 import timeGrid from '@fullcalendar/timegrid' // a plugin!
@@ -16,18 +16,14 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import CircleIcon from '@mui/icons-material/Circle';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { group } from 'console';
 import { textColorOnHEXBg, eventTypeEnum } from '../utils/Utilities';
-
-const divStyle = {
-	width: "100%",
-	height: "100%",
-};
+import { randomUUID } from 'crypto';
+import moment from 'moment';
+import { EventPopup } from '../components/EventPopup';
 
 export default function CalendarView() {
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
-	const calendarRef = useRef(null);
+	const calendarRef = useRef<FullCalendar>(null);
 	const [create] = useCreate();
 	const [update] = useUpdate();
 	const [_delete] = useDelete();
@@ -48,7 +44,7 @@ export default function CalendarView() {
 	})
 
 	const [unchecked, setUnchecked] = useState([] as number[]);
-	const [events, setEvents] = useState([] as any);
+	const [events, setEvents] = useState([] as EventInput[]);
 
 	const { data, total, isLoading, error } = useGetList(
 		'employee'
@@ -70,7 +66,7 @@ export default function CalendarView() {
 
 		dataProvider.getTimelineData(params)
 			.then((events) => {
-				events.map((e:any) => {
+				events.map((e:EventInput) => {
 					e.start = e.start_date;
 					e.end = e.end_date;
 					e.allDay = e.all_day;
@@ -90,6 +86,19 @@ export default function CalendarView() {
 
 	if (isLoading) { return <Loading />; }
 	if (error) { return <p>ERROR</p>; }
+
+	const shallowAddEvent = (event:EventInput) => {
+		setEvents(current => [...current, event]);
+
+		return event;
+	}
+
+	const shallowRemoveEvent = (eventId: string) => {
+		let currEvents = events;
+		currEvents = currEvents.filter(e => e.id != eventId);
+
+		setEvents(currEvents);
+	}
 
 	const eventEditSubmit = (data:any) => {
 		const recId = popover.record["id"];
@@ -135,7 +144,17 @@ export default function CalendarView() {
 			},
 			onSettled: (data, error) => {
 				handleClose();
-				notify("Item succesfully created") //TODO: make locale dynamic
+				dataProvider.getTimelineData({id: data["id"]})
+					.then((rec) => {
+					rec.start = rec.start_date;
+					rec.end = rec.end_date;
+					rec.allDay = rec.all_day;
+					rec.textColor = textColorOnHEXBg(rec.color),
+					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
+
+					shallowAddEvent(rec);
+					notify("Item succesfully created") //TODO: make locale dynamic
+				})
 			},
 		});
 	}
@@ -170,7 +189,6 @@ export default function CalendarView() {
 
 		setDialog(props)
 	}
-	console.log("render");
 	return (
 		<div id="calendar-container" style={{
 			margin: "30px 0"
@@ -267,9 +285,80 @@ export default function CalendarView() {
 						headerToolbar= {{
 						  left: 'prev,next today',
 						  center: 'title',
-						  right: 'dayGridMonth,timeGridWeek,timeGridDay',
+						  right: 'cloneWeek'
 						}}
+						eventMaxStack={5}
 						initialView="timeGridWeek"
+						customButtons={{
+							cloneWeek: {
+								text: "Clone prev. week",
+								click: (ev, element) => {
+
+									let calendar = calendarRef ? calendarRef.current : undefined,
+										api = calendar ? calendar.getApi() : undefined,
+										view = api ? api.view : undefined;
+
+									let start = view ? moment(view.currentStart).subtract(7, 'd') : null,
+										end = view ? moment(view.currentEnd).subtract(7, 'd') : null,
+										startStr = start ? start.toISOString() : "",
+										endStr = end ? end.toISOString() : "";
+									
+									var shouldClone = confirm(
+										`Do you really want to clone week ${startStr}-${endStr} events into the current week?`
+									);
+									
+									if (!shouldClone) {
+										return;
+									}
+
+									let params = {
+										"start": startStr,
+										"end": endStr,
+										"groups": "all"
+									};
+							
+									//fetch events in start-7d,end-7d
+									dataProvider.getTimelineData(params)
+										.then((events) => {
+											events.map((e:EventInput) => {
+												delete e.id;
+
+												e.start = moment(e.start_date).add(7, 'd').toDate();
+												e.end = moment(e.end_date).add(7, 'd').toDate();
+												e.start_date = e.start.toISOString();
+												e.end_date = e.end.toISOString();
+												e.allDay = e.all_day;
+												e.textColor = textColorOnHEXBg(e.color),
+												e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
+							
+												return new Promise((resolve, reject) => {
+													create('event', {data: e}, {
+														onError: (error) => {
+															reject(error)
+														},
+														onSettled: (data, error) => {
+															resolve(e);
+														}
+													});
+												});
+											})
+							
+											Promise.all(events).then((r) => {
+												r.forEach((e) => {
+													shallowAddEvent(e);
+													notify("Events copied successfully.")
+												})
+											}).catch(e => {
+												notify("Error while copying events")
+											})
+											
+										})
+										.catch(err => {
+											console.error(err);
+										});
+								}
+							}
+						}}
 						select={(info) => {
 							setDialog({
 								open: true,
@@ -366,32 +455,12 @@ export default function CalendarView() {
 							}}>
 								{"Crea evento"}
 							</Typography>
-							<SimpleForm
+							<EventPopup
 								{...dialog}
 								sanitizeEmptyValues
 								resource="event"
 								onSubmit={postSave}>
-								<BooleanInput source="all_day" label="Tutto il giorno" />
-								<DateTimeInput source="start_date" label="Data inizio" />
-								<DateTimeInput source="end_date" label="Data fine" />
-								<SelectInput source="type" choices={
-									Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
-								} 
-								defaultValue="j"/>
-								<ReferenceInput source="employee_id" reference="employee" label="Employee"  validate={required()} >
-									<SelectInput optionText="fullname" />
-								</ReferenceInput>
-								<FormDataConsumer>
-								{({ formData, ...rest }) => formData.type === "j" &&
-									<ReferenceInput 
-									source="customer_id" 
-									reference="customer" 
-									label="Customer">
-										<SelectInput optionText="name" />
-									</ReferenceInput>
-								}
-							</FormDataConsumer>
-							</SimpleForm>
+							</EventPopup>
 						</Box>
 					</Dialog>
 					<Fab color="primary" aria-label="add" style={{
@@ -428,32 +497,28 @@ export default function CalendarView() {
 					}}>
 						{popover.record && popover.record["id"] ? "Modifica evento" : "Crea evento"}
 					</Typography>
-					<SimpleForm
+					<EventPopup
 						sanitizeEmptyValues
 						record={popover.record}
 						resource="event"
-						onSubmit={eventEditSubmit}>
-						<BooleanInput source="all_day" label="Tutto il giorno" />
-						<DateTimeInput source="start_date" label="Data inizio" />
-						<DateTimeInput source="end_date" label="Data fine" />
-						<SelectInput source="type" choices={
-							Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
-						} 
-						defaultValue="j"/>
-						<ReferenceInput source="employee_id" reference="employee" label="Employee"  validate={required()} >
-							<SelectInput optionText="fullname" />
-						</ReferenceInput>
-						<FormDataConsumer>
-						{({ formData, ...rest }) => formData.type === "j" &&
-							<ReferenceInput 
-							source="customer_id" 
-							reference="customer" 
-							label="Customer">
-								<SelectInput optionText="name" />
-							</ReferenceInput>
-						}
-					</FormDataConsumer>
-					</SimpleForm>
+						onSubmit={eventEditSubmit}
+						onRemoveClick={() => {
+							_delete('event', { id: popover.record.id, previousData: popover.record }, {
+								onError: (error) => {
+									notify("Error on removing") //TODO: make locale dynamic
+									console.error(error)
+								},
+								onSettled: (data, error) => {
+									shallowRemoveEvent(popover.record.id)
+									setPopover({
+										open: false,
+										record: null,
+										anchorEl: null
+									});
+								},
+							});
+						}}>
+					</EventPopup>
 				</Box>
 			</Popover>
 		</div >

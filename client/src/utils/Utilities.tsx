@@ -1,6 +1,9 @@
 import React, { Component, useEffect, useRef, useState } from 'react';
 
-export const hexToRgb = (hex: string) => {
+export const hexToRgb = (hex: string | undefined) => {
+    if (!hex)
+        return null;
+
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
       r: parseInt(result[1], 16),
@@ -9,10 +12,10 @@ export const hexToRgb = (hex: string) => {
     } : null;
 };
 
-export const textColorOnHEXBg = (hex: string) => {
+export const textColorOnHEXBg = (hex: string | undefined) => {
     const rgb = hexToRgb(hex);
     if (!rgb)
-        return null;
+        return undefined;
 
     return (rgb.r*0.299 + rgb.g*0.587 + rgb.b*0.114) > 186 ? "#000000" : "#ffffff";
 }

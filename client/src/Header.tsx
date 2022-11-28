@@ -12,8 +12,8 @@ const Header = () => {
         currentPath = '/customer';
     } else if (!!matchPath('/employee/*', location.pathname)) {
         currentPath = '/employee';
-    } else if (!!matchPath('/timeline/*', location.pathname)) {
-        currentPath = '/timeline';
+    //} else if (!!matchPath('/timeline/*', location.pathname)) {
+    //    currentPath = '/timeline';
     } else if (!!matchPath('/calendar/*', location.pathname)) {
         currentPath = '/calendar';
     } else if (!!matchPath('/user/*', location.pathname)) {
@@ -31,7 +31,7 @@ const Header = () => {
                             sx={{ marginRight: '1em', height: 30 }}
                         />
                         <Typography component="span" variant="h5">
-                            Employee Shift Scheduler
+                            Shift Scheduler
                         </Typography>
                     </Box>
                     <Box>
@@ -41,12 +41,12 @@ const Header = () => {
                             indicatorColor="secondary"
                             textColor="inherit"
                         >
-                        <Tab
+                        {/*<Tab
                             label={'Timeline'}
                             component={Link}
                             to="/timeline"
                             value="/timeline"
-                        />
+                        />*/}
                         <Tab
                             label={'Calendar'}
                             component={Link}
