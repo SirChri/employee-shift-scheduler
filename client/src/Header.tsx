@@ -18,8 +18,8 @@ const Header = () => {
         currentPath = '/calendar';
     } else if (!!matchPath('/user/*', location.pathname)) {
         currentPath = '/user';
-    } else if (!!matchPath('/event/*', location.pathname)) {
-        currentPath = '/event';
+    } else if (!!matchPath('/summary/*', location.pathname)) {
+        currentPath = '/summary';
     }
 
     return (
@@ -53,24 +53,24 @@ const Header = () => {
                             to="/calendar"
                             value="/calendar"
                         />
-                            <Tab
-                                label={'Customers'}
-                                component={Link}
-                                to="/customer"
-                                value="/customer"
-                            />
-                            <Tab
-                                label={'Employees'}
-                                component={Link}
-                                to="/employee"
-                                value="/employee"
-                            />
-                            <Tab
-                                label={'Summary'}
-                                component={Link}
-                                to="/event"
-                                value="/event"
-                            />
+                        <Tab
+                            label={'Summary'}
+                            component={Link}
+                            to="/summary"
+                            value="/summary"
+                        />
+                        <Tab
+                            label={'Customers'}
+                            component={Link}
+                            to="/customer"
+                            value="/customer"
+                        />
+                        <Tab
+                            label={'Employees'}
+                            component={Link}
+                            to="/employee"
+                            value="/employee"
+                        />
                         </Tabs>
                     </Box>
                     <Box display="flex">

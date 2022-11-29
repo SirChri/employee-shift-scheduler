@@ -1,6 +1,6 @@
 import React, { Component, useEffect, useRef, useState } from 'react';
 
-export const hexToRgb = (hex: string | undefined) => {
+export const hexToRgb = function(hex: string | undefined) {
     if (!hex)
         return null;
 
@@ -12,7 +12,7 @@ export const hexToRgb = (hex: string | undefined) => {
     } : null;
 };
 
-export const textColorOnHEXBg = (hex: string | undefined) => {
+export const textColorOnHEXBg = function(hex: string | undefined) {
     const rgb = hexToRgb(hex);
     if (!rgb)
         return undefined;

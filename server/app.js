@@ -63,25 +63,29 @@ for (const [routeName, routeController] of Object.entries(standardRoutes)) {
     app.use(
         crud(`${baseApiUrl}/${routeName}`, {
             getList: ({ filter, limit, offset, order, opts  }) => {
-                /*console.log("rrrr ", opts)
+                let ops = {
+                    "=": Op.eq,
+                    "_gte": Op.gte,
+                    "_lte": Op.lte,
+                    "in": Op.in
+                }
 
-                const operators = { '_gte': '>=', '_lte': '<=', '_neq': '!=' };
-                console.log("xxx ", filter)
-                let where = {};
+                let filters = [];
+                for (let key in filter) {
+                    let element = filter[key];
 
-                const filters = Object.keys(filter).map(key => {
-                    const operator = operators[key.slice(-4)];
-                    const seqOp = operator ? Op[operator] : Op.and;
-                    const field = operator ? key.slice(0, -4) : key;
-                    where[field] = {
-                        [seqOp]: filter[key]
-                    };
+                    let ft = {};
+                    ft[ops[element["operator"]]] = element["value"];
 
-                    return key;
-                });
-                console.log("yyy ", where)*/
+                    let out = {};
+                    out[element["field"]] = ft;
 
-                return routeController.findAndCountAll({ limit, offset, order, where: filter })
+                    filters.push(out);
+                }
+
+                return routeController.findAndCountAll({ limit, offset, order, where: filters && filters.length > 0 ? {
+                    [Op.and]: filters
+                } : null})
             },
             getOne: (id) => routeController.findByPk(id),
             create: (body) =>

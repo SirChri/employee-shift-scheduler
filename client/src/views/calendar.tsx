@@ -70,7 +70,7 @@ export default function CalendarView() {
 					e.start = e.start_date;
 					e.end = e.end_date;
 					e.allDay = e.all_day;
-					e.textColor = textColorOnHEXBg(e.color),
+					e.textColor = textColorOnHEXBg(e.color);
 					e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
 
 					return e;
@@ -118,7 +118,7 @@ export default function CalendarView() {
 					rec.start = rec.start_date;
 					rec.end = rec.end_date;
 					rec.allDay = rec.all_day;
-					rec.textColor = textColorOnHEXBg(rec.color),
+					rec.textColor = textColorOnHEXBg(rec.color);
 					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
 
 					items.push(rec);
@@ -149,7 +149,7 @@ export default function CalendarView() {
 					rec.start = rec.start_date;
 					rec.end = rec.end_date;
 					rec.allDay = rec.all_day;
-					rec.textColor = textColorOnHEXBg(rec.color),
+					rec.textColor = textColorOnHEXBg(rec.color);
 					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
 
 					shallowAddEvent(rec);
@@ -273,14 +273,6 @@ export default function CalendarView() {
 										end = view ? moment(view.currentEnd).subtract(7, 'd') : null,
 										startStr = start ? start.toISOString() : "",
 										endStr = end ? end.toISOString() : "";
-									
-									var shouldClone = confirm(
-										`Do you really want to clone week ${startStr}-${endStr} events into the current week?`
-									);
-									
-									if (!shouldClone) {
-										return;
-									}
 
 									let params = {
 										"start": startStr,
@@ -299,7 +291,7 @@ export default function CalendarView() {
 												e.start_date = e.start.toISOString();
 												e.end_date = e.end.toISOString();
 												e.allDay = e.all_day;
-												e.textColor = textColorOnHEXBg(e.color),
+												e.textColor = textColorOnHEXBg(e.color);
 												e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
 							
 												return new Promise((resolve, reject) => {

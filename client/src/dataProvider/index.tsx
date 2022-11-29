@@ -1,4 +1,4 @@
-import simpleRest from "ra-data-simple-rest";
+import simpleRest from "./dataProvider";
 import { fetchUtils } from "react-admin";
 
 const fetchJson = (url: any, options: any = {}) => {

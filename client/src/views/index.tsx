@@ -26,8 +26,9 @@ const App = () => (
     <Resource name="customer" list={CustomerList} edit={CustomerEdit} create={CustomerCreate}/>
     <Resource name="user" list={UserList} edit={UserEdit} create={UserCreate} />
       <CustomRoutes>
-            {/*<Route path="/timeline" element={<TimelineView />}/>*/}
+            {<Route path="/timeline" element={<TimelineView />}/>}
             <Route path="/calendar" element={<CalendarView />}/>
+            <Route path="/summary" element={<EmployeeSummaryList />}/>
         </CustomRoutes>
         
   </Admin>
