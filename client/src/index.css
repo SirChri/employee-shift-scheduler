@@ -68,3 +68,19 @@ code {
   cursor: pointer;
       background-color: #FFF
 }
+
+.react-calendar {
+  border: 0 none !important;
+}
+
+.react-calendar abbr {
+  text-decoration: none;
+}
+
+.react-calendar__tile--now {
+  background: #ffb703 !important;
+}
+.react-calendar__tile--active {
+  background: #006edc !important;
+  color: white;
+}

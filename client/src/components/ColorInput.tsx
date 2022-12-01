@@ -12,7 +12,7 @@ interface ColorFieldProps {
   className?: string
 }
 
-export const ColorField = ({ source, className }: ColorFieldProps) => {
+export const ColorField = ({ source }: ColorFieldProps) => {
   const record = useRecordContext()
 
   return (

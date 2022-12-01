@@ -20,6 +20,8 @@ import { textColorOnHEXBg, eventTypeEnum } from '../utils/Utilities';
 import { randomUUID } from 'crypto';
 import moment from 'moment';
 import { EventPopup } from '../components/EventPopup';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 export default function CalendarView() {
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
@@ -28,6 +30,7 @@ export default function CalendarView() {
 	const [update] = useUpdate();
 	const [_delete] = useDelete();
 	const notify = useNotify();
+	const [calendarValue, setCalendarValue] = useState(new Date());
 	const [dialog, setDialog] = useState<any>({
 		open: false,
 		record: undefined
@@ -189,6 +192,7 @@ export default function CalendarView() {
 
 		setDialog(props)
 	}
+
 	return (
 		<div id="calendar-container" style={{
 			margin: "30px 0"
@@ -198,7 +202,7 @@ export default function CalendarView() {
 					sx={{
 						display: { xs: 'none', md: 'block' },
 						order: -1,
-						width: '15em',
+						width: '17em',
 						mr: 2,
 						alignSelf: 'flex-start',
 						height:"85vh",
@@ -207,10 +211,26 @@ export default function CalendarView() {
 					<Card 
 						sx={{
 							overflowY: "auto",
-							height: "85vh"
+							height: "85vh",
+							marginTop: "10px"
 						}}
 					>
 						<CardContent sx={{ pt: 1 }}>
+							<Calendar 
+								showFixedNumberOfWeeks={true}
+								onChange={setCalendarValue} 
+								value={calendarValue}
+								onClickDay={(value) => {
+									let calendar = calendarRef.current;
+									calendar?.getApi().gotoDate(value)
+								}}
+								activeStartDate={moment(calendarValue).startOf('month').toDate()}
+							/>
+							<h4 style={{
+								marginBottom: "0",
+								padding: "0 6px",
+								marginTop: "25px"
+							}}>Calendars</h4>
 							<nav aria-label="main">
 								<List>
 									{data!.map(record => {
@@ -244,7 +264,7 @@ export default function CalendarView() {
 						</CardContent>
 					</Card>
 				</Box>
-				<Box width={isSmall ? 'auto' : 'calc(100% - 16em)'} height="85vh">
+				<Box width={isSmall ? 'auto' : 'calc(100% - 18em)'} height="85vh">
 					<FullCalendar
 						ref={calendarRef}
 						locale="it"
@@ -406,6 +426,8 @@ export default function CalendarView() {
 								start: dateInfo.start.toISOString(),
 								end: dateInfo.end.toISOString()
 							})
+
+							setCalendarValue(moment(dateInfo.start).add(moment(new Date()).weekday(), 'd').toDate());
 						}}
 					/>
 					<Dialog

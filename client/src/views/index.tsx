@@ -12,7 +12,7 @@ import { authProvider } from '../authProvider';
 import { UserList, UserEdit, UserCreate } from './user'
 import NotFound from './notfound'
 import { QueryClient } from 'react-query';
-import  EmployeeSummaryList from './empsummary';
+import  EmployeeSummaryList from './eventsummary';
 import CalendarView from './calendar';
 
 const App = () => (
