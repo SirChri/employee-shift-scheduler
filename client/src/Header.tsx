@@ -1,11 +1,12 @@
 import React from 'react';
 import { Tabs, Tab, Toolbar, AppBar, Box, Typography } from '@mui/material';
 import { Link, matchPath, useLocation } from 'react-router-dom';
-import { UserMenu, Logout, LoadingIndicator } from 'react-admin';
+import { UserMenu, Logout, LoadingIndicator, useTranslate } from 'react-admin';
 import BadgeIcon from '@mui/icons-material/Badge';
 
 const Header = () => {
     const location = useLocation();
+    const translate = useTranslate();
 
     let currentPath = '/';
     if (!!matchPath('/customer/*', location.pathname)) {
@@ -48,7 +49,7 @@ const Header = () => {
                             value="/timeline"
                         />*/}
                         <Tab
-                            label={'Calendar'}
+                            label={translate(`ess.calendar.name`)}
                             component={Link}
                             to="/calendar"
                             value="/calendar"
@@ -60,13 +61,18 @@ const Header = () => {
                             value="/summary"
                         />
                         <Tab
-                            label={'Customers'}
+                            
+                            label={translate(`resources.customer.name`, {
+                                smart_count: 2,
+                            })}
                             component={Link}
                             to="/customer"
                             value="/customer"
                         />
                         <Tab
-                            label={'Employees'}
+                            label={translate(`resources.employee.name`, {
+                                smart_count: 2,
+                            })}
                             component={Link}
                             to="/employee"
                             value="/employee"
