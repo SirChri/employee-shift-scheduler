@@ -3,8 +3,7 @@ import Grid from '@mui/material/Grid';
 import { BooleanInput, Create, SimpleForm, TextInput, required, useTranslate } from 'react-admin';
 
 import { ColorField, ColorInput } from '../components/ColorInput';
-import FullCalendar, { EventContentArg } from '@fullcalendar/react' // must go before plugins
-import { EventInput } from '@fullcalendar/react';
+import FullCalendar from '@fullcalendar/react' // must go before plugins
 import timeGrid from '@fullcalendar/timegrid' // a plugin!
 import dayGrid from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction';

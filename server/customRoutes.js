@@ -35,7 +35,16 @@ router.get('/timeline-event', function(req, res, next) {
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
                 JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
-                WHERE employee_id = ANY (:groups ::bigint[]) AND ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL`, {
+                WHERE employee_id = ANY (:groups ::bigint[]) AND ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL AND NOT a.recurring
+                UNION
+                SELECT 
+                    a.*, 
+                    c."name" "customer_descr",
+                    e."color"
+                FROM "event" a
+                LEFT JOIN customer c on a.customer_id = c.id
+                JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
+                WHERE employee_id = ANY (:groups ::bigint[]) AND a.deleted_at IS NULL AND a.recurring`, {
                     replacements: params,
                     type: QueryTypes.SELECT
                 }).then((data, meta) => {
@@ -52,7 +61,16 @@ router.get('/timeline-event', function(req, res, next) {
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
                 JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
-                WHERE ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL`, {
+                WHERE ((end_date BETWEEN :start AND :end) OR (start_date BETWEEN :start AND :end) OR (start_date < :start AND end_date > :end)) AND a.deleted_at IS NULL AND NOT a.recurring
+                UNION
+                SELECT 
+                    a.*, 
+                    c."name" "customer_descr",
+                    e."color"
+                FROM "event" a
+                LEFT JOIN customer c on a.customer_id = c.id
+                JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
+                WHERE a.deleted_at IS NULL AND a.recurring`, {
                     replacements: params,
                     type: QueryTypes.SELECT
                 }).then((data, meta) => {

@@ -1,15 +1,18 @@
 import React from 'react';
-import { BooleanInput, DateTimeInput, FormDataConsumer, ReferenceInput, required, SelectInput, SimpleForm, useDelete } from "react-admin";
+import { useFormContext } from 'react-hook-form';
+import { BooleanInput, DateInput, DateTimeInput, FormDataConsumer, ReferenceInput, required, SelectInput, SimpleForm, TimeInput, useCreate, useDelete, useUpdate } from "react-admin";
 import { textColorOnHEXBg, eventTypeEnum } from '../utils/Utilities';
 import { Create, SaveButton, Toolbar, useRedirect, useNotify } from 'react-admin';
-import { IconButton } from '@mui/material';
+import { Box, Grid, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RruleInput from './RruleInput';
+import { RRule, datetime } from 'rrule';
 
 const PostCreateToolbar = (props:any) => {
     const redirect = useRedirect();
     const notify = useNotify();
 	const [_delete] = useDelete();
-    
+
     return (
         <Toolbar>
             <SaveButton
@@ -25,31 +28,57 @@ const PostCreateToolbar = (props:any) => {
 };
 
 export const EventPopup = (props: any) => {
-    let onRemoveClick = props.onRemoveClick;
+    const { onRemoveClick, ...sfProps } = props;
 
     return (
         <SimpleForm
-            {...props}
+            {...sfProps}
             toolbar={<PostCreateToolbar onRemoveClick={onRemoveClick}></PostCreateToolbar>}>
-            <BooleanInput source="all_day" label="Tutto il giorno" />
-            <DateTimeInput source="start_date" label="Data inizio" />
-            <DateTimeInput source="end_date" label="Data fine" />
-            <SelectInput source="type" choices={
-                Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
-            } 
-            defaultValue="j"/>
-            <ReferenceInput source="employee_id" reference="employee" label="Employee"  validate={required()} >
-                <SelectInput optionText="fullname" />
-            </ReferenceInput>
+
             <FormDataConsumer>
-            {({ formData, ...rest }) => formData.type === "j" &&
-                <ReferenceInput 
-                source="customer_id" 
-                reference="customer" 
-                label="Customer">
-                    <SelectInput optionText="name" />
-                </ReferenceInput>
-            }
+            {({ formData, ...rest }) => 
+            <Box sx={{ flexGrow: 1 }}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <BooleanInput source="all_day" label="Tutto il giorno" />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <DateTimeInput fullWidth source="start_date" label="Data inizio" validate={required()} />
+                    </Grid>
+                    {/*<Grid item xs={3}>
+                        {!formData.all_day && <TimeInput fullWidth source="start_time" label="Ora inizio" validate={required()} />}
+                    </Grid>*/}
+                    <Grid item xs={6}>
+                        <DateTimeInput fullWidth source="end_date" label="Data fine" validate={required()} />
+                    </Grid>
+                    {/*<Grid item xs={3}>
+                        {!formData.all_day && <TimeInput fullWidth source="end_time" label="Ora fine" validate={required()} />}
+                    </Grid>*/}
+                    <Grid item xs={4}>
+                        <SelectInput source="type" choices={
+                            Object.entries(eventTypeEnum).map(([id, name]) => ({id,name}))
+                        } 
+                        defaultValue="j"/>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <ReferenceInput source="employee_id" reference="employee" label="Employee" validate={required()} >
+                            <SelectInput optionText="fullname" validate={required()} />
+                        </ReferenceInput>
+                    </Grid>
+                    <Grid item xs={4}>
+                        {formData.type === "j" && 
+                            <ReferenceInput 
+                            source="customer_id" 
+                            reference="customer" 
+                            label="Customer">
+                                <SelectInput optionText="name" validate={required()} />
+                            </ReferenceInput>
+                        }
+                    </Grid>
+                </Grid>
+                <RruleInput source="rrule" />
+            </Box>
+        }
         </FormDataConsumer>
         </SimpleForm>
     )

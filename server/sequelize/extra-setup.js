@@ -9,6 +9,8 @@ function applyRelations(sequelize) {
 
     employee.hasMany(calendar);
     calendar.belongsTo(employee);
+
+    event.belongsTo(employee, { foreignKey: 'parent_id', as: 'Parent' }); 
 }
 
 module.exports = { applyRelations };

@@ -1,6 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react'
-import FullCalendar, { EventContentArg } from '@fullcalendar/react' // must go before plugins
-import { EventInput } from '@fullcalendar/react';
+import FullCalendar from '@fullcalendar/react' // must go before plugins
 import timeGrid from '@fullcalendar/timegrid' // a plugin!
 import dayGrid from '@fullcalendar/daygrid'
 import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography, IconButton, Popover, Button } from '@mui/material';
@@ -22,6 +21,10 @@ import moment from 'moment';
 import { EventPopup } from '../components/EventPopup';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { EventContentArg, EventInput } from '@fullcalendar/core';
+import rrulePlugin from '@fullcalendar/rrule'
+import { RRule } from 'rrule';
+import { DateTime } from "luxon";
 
 export default function CalendarView() {
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
@@ -53,11 +56,15 @@ export default function CalendarView() {
 		'employee'
 	);
 
+	const utcDate = (y:number,m:number,d:number,h:number,i:number,s:number) => {
+		return new Date(Date.UTC(y, m, d, h, i, s))
+	}
+
 	// load events
 	useEffect(() => {
 		if (!data || !window.start)
 			return;
-
+			
 		let groups = data!.map(e => e.id);
 		groups = groups.filter(g => !unchecked.includes(g))
 
@@ -68,19 +75,64 @@ export default function CalendarView() {
 		};
 
 		dataProvider.getTimelineData(params)
-			.then((events) => {
-				events.map((e:EventInput) => {
+			.then((fetchedEvents) => {
+				fetchedEvents = fetchedEvents?.map((e:EventInput) => {
 					e.start = e.start_date;
 					e.end = e.end_date;
 					e.allDay = e.all_day;
 					e.textColor = textColorOnHEXBg(e.color);
 					e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
-
+					
 					return e;
 				})
 
-				//TODO: improve merge capabilities
-				setEvents(events);
+				let recurrentEvs:EventInput[] = [];
+				fetchedEvents.filter((e:EventInput) => e.recurring)?.forEach((e:any) => {
+					const rrule = e.rrule;
+					const startDate = new Date(e?.start_date);
+
+					const rule = new RRule({
+						freq: e?.frequency,
+						interval: e?.interval,
+						dtstart: utcDate(startDate.getFullYear(), startDate.getMonth(), startDate.getDay(), startDate.getHours(), startDate.getMinutes(), startDate.getSeconds()),
+						until: e?.until == 1 && e?.until_date ? e?.until_date : null,
+						count: e?.until == 2 ? e?.until_occurrences : null,
+						byweekday: e?.byweekday
+					});
+
+					let i = 0;
+					let duration = (new Date(e.end_date).getTime() - new Date(e.start_date).getTime());
+					
+					rule.between(new Date(window.start), new Date(window.end))?.map((d) => new Date(
+						d.getUTCFullYear(),
+						d.getUTCMonth(),
+						d.getUTCDate(),
+						d.getUTCHours(),
+						d.getUTCMinutes(),
+					)).forEach((d:Date) => {
+						recurrentEvs.push({
+							id: e.id + "_" + i++,
+							start: new Date(d),
+							end: new Date(d.getTime() + duration),
+							type: e.type,
+							color: e.color,
+							allDay: e.all_day,
+							textColor: textColorOnHEXBg(e.color),
+							title: e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr,
+							employee_id: e.employee_id,
+							customer_id: e.customer_id,
+							recurring: true,
+							frequency: e.frequency,
+							interval: e.interval,
+							until: e?.until,
+							until_date: e?.until_date,
+							until_occurrences: e?.until_occurrences,
+							byweekday: e?.byweekday
+						})
+					})
+				})
+
+				setEvents([...fetchedEvents.filter((e:EventInput) => !e.recurring), ...recurrentEvs]);
 			})
 			.catch(err => {
 				console.error(err);
@@ -94,6 +146,11 @@ export default function CalendarView() {
 		setEvents(current => [...current, event]);
 
 		return event;
+	}
+
+	const shallowEditEvent = (event:EventInput) => {
+		let curEv = events.find(e => e.id == event["id"]);
+		setEvents(current => [...current.filter(e => e.id != event["id"]), {...curEv, ...event}]);		
 	}
 
 	const shallowRemoveEvent = (eventId: string) => {
@@ -272,76 +329,14 @@ export default function CalendarView() {
 						selectable={true}
 						slotMinTime="05:00:00"
 						slotMaxTime="22:00:00"
-						plugins={[timeGrid, dayGrid, interactionPlugin]}
+						plugins={[timeGrid, dayGrid, interactionPlugin, rrulePlugin]}
 						headerToolbar= {{
-						  left: 'prev,next today',
+						  left: 'prev,next',
 						  center: 'title',
-						  right: 'cloneWeek'
+						  right: 'today'
 						}}
 						eventMaxStack={5}
 						initialView="timeGridWeek"
-						customButtons={{
-							cloneWeek: {
-								text: "Clone prev. week",
-								click: (ev, element) => {
-
-									let calendar = calendarRef ? calendarRef.current : undefined,
-										api = calendar ? calendar.getApi() : undefined,
-										view = api ? api.view : undefined;
-
-									let start = view ? moment(view.currentStart).subtract(7, 'd') : null,
-										end = view ? moment(view.currentEnd).subtract(7, 'd') : null,
-										startStr = start ? start.toISOString() : "",
-										endStr = end ? end.toISOString() : "";
-
-									let params = {
-										"start": startStr,
-										"end": endStr,
-										"groups": "all"
-									};
-							
-									//fetch events in start-7d,end-7d
-									dataProvider.getTimelineData(params)
-										.then((events) => {
-											events.map((e:EventInput) => {
-												delete e.id;
-
-												e.start = moment(e.start_date).add(7, 'd').toDate();
-												e.end = moment(e.end_date).add(7, 'd').toDate();
-												e.start_date = e.start.toISOString();
-												e.end_date = e.end.toISOString();
-												e.allDay = e.all_day;
-												e.textColor = textColorOnHEXBg(e.color);
-												e.title = e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr;
-							
-												return new Promise((resolve, reject) => {
-													create('event', {data: e}, {
-														onError: (error) => {
-															reject(error)
-														},
-														onSettled: (data, error) => {
-															resolve(e);
-														}
-													});
-												});
-											})
-							
-											Promise.all(events).then((r) => {
-												r.forEach((e) => {
-													shallowAddEvent(e);
-													notify("Events copied successfully.")
-												})
-											}).catch(e => {
-												notify("Error while copying events")
-											})
-											
-										})
-										.catch(err => {
-											console.error(err);
-										});
-								}
-							}
-						}}
 						select={(info) => {
 							setDialog({
 								open: true,
@@ -368,8 +363,8 @@ export default function CalendarView() {
 							if (eventContent.timeText)
 								return (
 									<>
-									{eventContent.timeText} <br />
-									<i>{eventContent.event.title}</i>
+									{eventContent.event.title}<br />
+									<i>{eventContent.timeText} </i>
 									</>
 								)
 
@@ -382,31 +377,45 @@ export default function CalendarView() {
 
 						eventClick={(info) => {
 							const item = info.event.toJSON();
-
+							
 							setPopover({
 								open: true,
 								anchorEl: info.el,
 								record: {
-									id: item.id,
+									id: item.id.split("_")[0],
 									start_date: item.start,
 									all_day: item.extendedProps.all_day,
 									end_date: item.end,
 									type: item.extendedProps.type,
 									employee_id: item.extendedProps.employee_id,
-									customer_id: item.extendedProps.customer_id									
+									customer_id: item.extendedProps.customer_id,
+									recurring: item.extendedProps.recurring,
+									byweekday: item.extendedProps.byweekday,
+									frequency: item.extendedProps.frequency,
+									interval: item.extendedProps.interval,
+									until: item.extendedProps.until,
+									until_occurrences: item.extendedProps.until_occurrences,
+									until_date: item.extendedProps.until_date
 								}
 							})
 						}}
 						eventChange={(info) => {
 							const item = info.event.toJSON();
-							const recId = item["id"];
+							const recId = item["id"].split("_")[0];
 							let data = {
 								id: recId,
 								start_date: item.start,
 								type: item.extendedProps.type,
 								end_date: item.end,
 								employee_id: item.extendedProps.employee_id,
-								customer_id: item.extendedProps.customer_id
+								customer_id: item.extendedProps.customer_id,
+								recurring: item.extendedProps.recurring,
+								byweekday: item.extendedProps.byweekday,
+								frequency: item.extendedProps.frequency,
+								interval: item.extendedProps.interval,
+								until: item.extendedProps.until,
+								until_occurrences: item.extendedProps.until_occurrences,
+								until_date: item.extendedProps.until_date
 							}
 
 							update('event', { id: recId, data: data }, {
@@ -416,6 +425,8 @@ export default function CalendarView() {
 								},
 								onSettled: (data, error) => {
 									notify("Item updated") //TODO: make locale dynamic
+
+									shallowEditEvent(item);
 								}
 							})
 						}}
@@ -435,11 +446,6 @@ export default function CalendarView() {
 						onClose={handleClose}
 					>
 						<Box>
-							<Typography variant="h6" sx={{
-								padding: "10px 20px"
-							}}>
-								{"Crea evento"}
-							</Typography>
 							<EventPopup
 								{...dialog}
 								sanitizeEmptyValues
@@ -467,6 +473,9 @@ export default function CalendarView() {
 						anchorEl: null
 					});
 				}}
+				PaperProps={{
+					style: { width: '600px' },
+				  }}
 				anchorOrigin={{
 				  vertical: 'bottom',
 				  horizontal: 'left',
@@ -477,11 +486,6 @@ export default function CalendarView() {
 				}}
 			>
 				<Box>
-					<Typography variant="h6" sx={{
-						padding: "10px 20px"
-					}}>
-						{popover.record && popover.record["id"] ? "Modifica evento" : "Crea evento"}
-					</Typography>
 					<EventPopup
 						sanitizeEmptyValues
 						record={popover.record}

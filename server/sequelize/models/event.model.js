@@ -1,3 +1,4 @@
+const { RRule } = require('rrule');
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -39,7 +40,49 @@ module.exports = (sequelize) => {
         },
         hours: {
             type: DataTypes.DECIMAL
-        }
+        },
+        //recurring events
+        recurring: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            default: false
+        },
+        interval: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        frequency: {
+            type: DataTypes.INTEGER, //3: daily, 2: weekly, 1: monthly, 0: yearly
+            allowNull: true,
+        },
+        byweekday: {
+            type: DataTypes.ARRAY(DataTypes.INTEGER),
+            allowNull: true,
+        },
+        until: {
+            type: DataTypes.INTEGER, //0: never, 1: date, 2: occurrences
+            allowNull: true,
+        },
+        until_date: {
+            type: DataTypes.DATEONLY, //0: never, 1: date, 2: occurrences
+            allowNull: true,
+        },
+        until_occurrences: {
+            type: DataTypes.INTEGER, //0: never, 1: date, 2: occurrences
+            allowNull: true,
+        },
+        rrule: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        //handle custom events on recurring series
+        parent_id: {
+            type: DataTypes.BIGINT,
+            references: {
+                model: 'event',
+                key: 'id'
+            }
+        },
     }, {
         hooks: {
             beforeCreate: async(event, options, cb) => {
