@@ -1,3 +1,6 @@
+> **Note**
+> This project is still a WIP/pre-alpha.
+
 # Employee Shift Scheduler
 ![Home screen](docs/images/home-calendar.png?raw=true "Home screen")
 A (very) simple but effective employee shift scheduler based on React (react-admin) as frontend and Node (express) + PostgreSQL as backend.<br>
