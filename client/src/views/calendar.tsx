@@ -24,7 +24,6 @@ import 'react-calendar/dist/Calendar.css';
 import { EventContentArg, EventInput } from '@fullcalendar/core';
 import rrulePlugin from '@fullcalendar/rrule'
 import { RRule } from 'rrule';
-import { DateTime } from "luxon";
 
 export default function CalendarView() {
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
@@ -56,11 +55,65 @@ export default function CalendarView() {
 		'employee'
 	);
 
-	const utcDate = (y:number,m:number,d:number,h:number,i:number,s:number) => {
-		return new Date(Date.UTC(y, m, d, h, i, s))
+	const utcDate = (date:Date) => {
+		return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()))
 	}
 
-	// load events
+	/**
+	 * 
+	 * @param e the recurring event 
+	 * @returns array of "exploded" events in the current window
+	 */
+	const recurrentDates = (e:EventInput) => {
+		const startDate = new Date(e?.start_date);
+		let out:EventInput[] = [];
+
+		const rule = new RRule({
+			freq: e?.frequency,
+			interval: e?.interval,
+			dtstart: utcDate(startDate),
+			until: e?.until == 1 && e?.until_date ? new Date(e?.until_date) : null,
+			count: e?.until == 2 ? e?.until_occurrences : null,
+			byweekday: e?.byweekday
+		});
+
+		let i = 0;
+		let duration = (new Date(e.end_date).getTime() - new Date(e.start_date).getTime());
+		
+		rule.between(new Date(window.start), new Date(window.end))?.map((d) => new Date(
+			d.getUTCFullYear(),
+			d.getUTCMonth(),
+			d.getUTCDate(),
+			d.getUTCHours(),
+			d.getUTCMinutes(),
+		)).forEach((d:Date) => {
+			out.push({
+				id: e.id + "_" + i++,
+				start: new Date(d),
+				end: new Date(d.getTime() + duration),
+				type: e.type,
+				color: e.color,
+				allDay: e.all_day,
+				textColor: textColorOnHEXBg(e.color),
+				title: e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr,
+				employee_id: e.employee_id,
+				customer_id: e.customer_id,
+				recurring: true,
+				frequency: e.frequency,
+				interval: e.interval,
+				until: e?.until,
+				until_date: e?.until_date,
+				until_occurrences: e?.until_occurrences,
+				byweekday: e?.byweekday
+			})
+		})
+
+		return out;
+	}
+
+	/**
+	 * on window change load the events
+	 */
 	useEffect(() => {
 		if (!data || !window.start)
 			return;
@@ -88,48 +141,7 @@ export default function CalendarView() {
 
 				let recurrentEvs:EventInput[] = [];
 				fetchedEvents.filter((e:EventInput) => e.recurring)?.forEach((e:any) => {
-					const rrule = e.rrule;
-					const startDate = new Date(e?.start_date);
-
-					const rule = new RRule({
-						freq: e?.frequency,
-						interval: e?.interval,
-						dtstart: utcDate(startDate.getFullYear(), startDate.getMonth(), startDate.getDay(), startDate.getHours(), startDate.getMinutes(), startDate.getSeconds()),
-						until: e?.until == 1 && e?.until_date ? e?.until_date : null,
-						count: e?.until == 2 ? e?.until_occurrences : null,
-						byweekday: e?.byweekday
-					});
-
-					let i = 0;
-					let duration = (new Date(e.end_date).getTime() - new Date(e.start_date).getTime());
-					
-					rule.between(new Date(window.start), new Date(window.end))?.map((d) => new Date(
-						d.getUTCFullYear(),
-						d.getUTCMonth(),
-						d.getUTCDate(),
-						d.getUTCHours(),
-						d.getUTCMinutes(),
-					)).forEach((d:Date) => {
-						recurrentEvs.push({
-							id: e.id + "_" + i++,
-							start: new Date(d),
-							end: new Date(d.getTime() + duration),
-							type: e.type,
-							color: e.color,
-							allDay: e.all_day,
-							textColor: textColorOnHEXBg(e.color),
-							title: e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr,
-							employee_id: e.employee_id,
-							customer_id: e.customer_id,
-							recurring: true,
-							frequency: e.frequency,
-							interval: e.interval,
-							until: e?.until,
-							until_date: e?.until_date,
-							until_occurrences: e?.until_occurrences,
-							byweekday: e?.byweekday
-						})
-					})
+					recurrentEvs = recurrentEvs.concat(recurrentDates(e));
 				})
 
 				setEvents([...fetchedEvents.filter((e:EventInput) => !e.recurring), ...recurrentEvs]);
@@ -181,7 +193,11 @@ export default function CalendarView() {
 					rec.textColor = textColorOnHEXBg(rec.color);
 					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
 
-					items.push(rec);
+					if (rec.recurring)
+						recurrentDates(rec).forEach(e => items.push(e))
+					else
+						items.push(rec);
+					
 					setEvents(items);
 					notify("Item updated") //TODO: make locale dynamic
 
@@ -212,7 +228,11 @@ export default function CalendarView() {
 					rec.textColor = textColorOnHEXBg(rec.color);
 					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
 
-					shallowAddEvent(rec);
+					if (rec.recurring)
+						recurrentDates(rec).forEach(e => shallowAddEvent(e))
+					else
+						shallowAddEvent(rec)
+
 					notify("Item succesfully created") //TODO: make locale dynamic
 				})
 			},
@@ -255,6 +275,11 @@ export default function CalendarView() {
 			margin: "30px 0"
 		}}>
 			<Box display="flex">
+				{
+					/**
+					 * Left component
+					 */
+				}
 				<Box
 					sx={{
 						display: { xs: 'none', md: 'block' },
@@ -273,9 +298,14 @@ export default function CalendarView() {
 						}}
 					>
 						<CardContent sx={{ pt: 1 }}>
+							{
+								/**
+								 * Small calendar component
+								 */
+							}
 							<Calendar 
 								showFixedNumberOfWeeks={true}
-								onChange={setCalendarValue} 
+								//onChange={setCalendarValue} 
 								value={calendarValue}
 								onClickDay={(value) => {
 									let calendar = calendarRef.current;
@@ -283,6 +313,11 @@ export default function CalendarView() {
 								}}
 								activeStartDate={moment(calendarValue).startOf('month').toDate()}
 							/>
+							{
+								/**
+								 * Employee list
+								 */
+							}
 							<h4 style={{
 								marginBottom: "0",
 								padding: "0 6px",
@@ -321,6 +356,11 @@ export default function CalendarView() {
 						</CardContent>
 					</Card>
 				</Box>
+				{
+					/**
+					 * Fullcalendar/Main component
+					 */
+				}
 				<Box width={isSmall ? 'auto' : 'calc(100% - 18em)'} height="85vh">
 					<FullCalendar
 						ref={calendarRef}
@@ -441,6 +481,12 @@ export default function CalendarView() {
 							setCalendarValue(moment(dateInfo.start).add(moment(new Date()).weekday(), 'd').toDate());
 						}}
 					/>
+					{
+						/**
+						 * Dialog (popup) opened on "add button"
+						 * or on "select" calendar event
+						 */
+					}
 					<Dialog
 						open={dialog.open}
 						onClose={handleClose}
@@ -454,6 +500,11 @@ export default function CalendarView() {
 							</EventPopup>
 						</Box>
 					</Dialog>
+					{
+						/**
+						 * Add button
+						 */
+					}
 					<Fab color="primary" aria-label="add" style={{
 						right: 20,
 						position: 'fixed',
@@ -463,6 +514,11 @@ export default function CalendarView() {
 					</Fab>
 				</Box>
 			</Box>
+			{
+				/**
+				 * Popover attached to the event on event click
+				 */
+			}
 			<Popover
 				open={popover.open}
 				anchorEl={popover.anchorEl}
