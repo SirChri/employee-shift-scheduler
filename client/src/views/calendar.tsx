@@ -2,12 +2,12 @@ import React, { useEffect, useId, useRef, useState } from 'react'
 import FullCalendar from '@fullcalendar/react' // must go before plugins
 import timeGrid from '@fullcalendar/timegrid' // a plugin!
 import dayGrid from '@fullcalendar/daygrid'
-import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography, IconButton, Popover, Button } from '@mui/material';
+import { Box, Chip, useMediaQuery, Theme, Card, CardContent, Checkbox, Typography, IconButton, Popover, Button, DialogTitle, DialogContent, DialogActions, FormControl, RadioGroup, FormLabel, FormControlLabel, Radio, Stack, Grid } from '@mui/material';
 import { dataProvider } from '../dataProvider'
 import interactionPlugin from '@fullcalendar/interaction';
 import Dialog from '@mui/material/Dialog';
 import AddIcon from '@mui/icons-material/Add';
-import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useNotify, useCreate, useUpdate, useGetList, Loading, FormDataConsumer, BooleanInput, useDelete } from 'react-admin';
+import { SimpleForm, TextInput, required, ReferenceInput, SelectInput, DateTimeInput, useNotify, useCreate, useUpdate, useGetList, Loading, FormDataConsumer, BooleanInput, useDelete, EditActions } from 'react-admin';
 import Fab from '@mui/material/Fab';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -23,7 +23,35 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { EventContentArg, EventInput } from '@fullcalendar/core';
 import rrulePlugin from '@fullcalendar/rrule'
-import { RRule } from 'rrule';
+import { RRule, RRuleSet } from 'rrule';
+
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import SquareRoundedIcon from '@mui/icons-material/SquareRounded';
+import EventRoundedIcon from '@mui/icons-material/EventRounded';
+import QueryBuilderRoundedIcon from '@mui/icons-material/QueryBuilderRounded';
+import RepeatRoundedIcon from '@mui/icons-material/RepeatRounded';
+
+interface DBEvent {
+	id: number,
+	start_date: Date | string,
+	end_date: Date | string,
+	all_day?: boolean,
+	type: string,
+	customer_id?: number,
+	employee_id: number,
+	hours?: number,
+	recurring?: boolean,
+	interval?: number,
+	frequency?: number,
+	byweekday?: number[],
+	until?: number,
+	until_date?: Date | string,
+	until_occurrences?: number,
+	ex_dates?: Date[] | string[],
+	parent_id: number 
+}
 
 export default function CalendarView() {
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
@@ -33,7 +61,17 @@ export default function CalendarView() {
 	const [_delete] = useDelete();
 	const notify = useNotify();
 	const [calendarValue, setCalendarValue] = useState(new Date());
+	const [recurrAction, setRecurrAction] = useState("0")
 	const [dialog, setDialog] = useState<any>({
+		open: false,
+		record: undefined
+	});
+	const [editDialog, setEditDialog] = useState<any>({
+		open: false,
+		record: undefined
+	});
+	const [recurrDialog, setRecurrDialog] = useState<any>({
+		fcinfo: undefined,
 		open: false,
 		record: undefined
 	});
@@ -67,20 +105,27 @@ export default function CalendarView() {
 	const recurrentDates = (e:EventInput) => {
 		const startDate = new Date(e?.start_date);
 		let out:EventInput[] = [];
-
-		const rule = new RRule({
+		let rrule = new RRule({
 			freq: e?.frequency,
 			interval: e?.interval,
 			dtstart: utcDate(startDate),
 			until: e?.until == 1 && e?.until_date ? new Date(e?.until_date) : null,
 			count: e?.until == 2 ? e?.until_occurrences : null,
-			byweekday: e?.byweekday
+			byweekday: e?.byweekday,
 		});
 
+		const rruleSet = new RRuleSet();
+		rruleSet.rrule(
+			rrule
+		);
+		
+		if (e.ex_dates)
+			e.ex_dates?.forEach((d:string) => rruleSet.exdate(utcDate(new Date(d))))
+			
 		let i = 0;
 		let duration = (new Date(e.end_date).getTime() - new Date(e.start_date).getTime());
 		
-		rule.between(new Date(window.start), new Date(window.end))?.map((d) => new Date(
+		rruleSet.between(new Date(window.start), new Date(window.end))?.map((d) => new Date(
 			d.getUTCFullYear(),
 			d.getUTCMonth(),
 			d.getUTCDate(),
@@ -97,6 +142,7 @@ export default function CalendarView() {
 				textColor: textColorOnHEXBg(e.color),
 				title: e.type != "j" ? eventTypeEnum[e.type as keyof typeof eventTypeEnum] : e.customer_descr,
 				employee_id: e.employee_id,
+				employee_descr: e.employee_descr,
 				customer_id: e.customer_id,
 				recurring: true,
 				frequency: e.frequency,
@@ -104,17 +150,17 @@ export default function CalendarView() {
 				until: e?.until,
 				until_date: e?.until_date,
 				until_occurrences: e?.until_occurrences,
-				byweekday: e?.byweekday
+				byweekday: e?.byweekday,
+				_parent: e,
+				_original_start_date: new Date(d).toISOString(),
+				_rrule: rrule
 			})
 		})
 
 		return out;
 	}
 
-	/**
-	 * on window change load the events
-	 */
-	useEffect(() => {
+	const reloadEvents = (callback?: () => void) => {
 		if (!data || !window.start)
 			return;
 			
@@ -145,10 +191,20 @@ export default function CalendarView() {
 				})
 
 				setEvents([...fetchedEvents.filter((e:EventInput) => !e.recurring), ...recurrentEvs]);
+
+				if (callback)
+					callback()
 			})
 			.catch(err => {
 				console.error(err);
 			});
+	}
+
+	/**
+	 * on window change load the events
+	 */
+	useEffect(() => {
+		reloadEvents()
 	}, [window, data, unchecked])
 
 	if (isLoading) { return <Loading />; }
@@ -181,24 +237,7 @@ export default function CalendarView() {
 				console.error(error)
 			},
 			onSettled: (data, error) => {
-				// 1. Make a shallow copy of the items
-				let items = [...events];
-				items = items.filter(it => it.id != popover.record["id"]);
-				
-				dataProvider.getTimelineData({id: popover.record["id"]})
-					.then((rec) => {
-					rec.start = rec.start_date;
-					rec.end = rec.end_date;
-					rec.allDay = rec.all_day;
-					rec.textColor = textColorOnHEXBg(rec.color);
-					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
-
-					if (rec.recurring)
-						recurrentDates(rec).forEach(e => items.push(e))
-					else
-						items.push(rec);
-					
-					setEvents(items);
+				reloadEvents(() => {
 					notify("Item updated") //TODO: make locale dynamic
 
 					setPopover({
@@ -220,19 +259,7 @@ export default function CalendarView() {
 			},
 			onSettled: (data, error) => {
 				handleClose();
-				dataProvider.getTimelineData({id: data["id"]})
-					.then((rec) => {
-					rec.start = rec.start_date;
-					rec.end = rec.end_date;
-					rec.allDay = rec.all_day;
-					rec.textColor = textColorOnHEXBg(rec.color);
-					rec.title = rec.type != "j" ? eventTypeEnum[rec.type as keyof typeof eventTypeEnum] : rec.customer_descr;
-
-					if (rec.recurring)
-						recurrentDates(rec).forEach(e => shallowAddEvent(e))
-					else
-						shallowAddEvent(rec)
-
+				reloadEvents(() => {
 					notify("Item succesfully created") //TODO: make locale dynamic
 				})
 			},
@@ -268,6 +295,127 @@ export default function CalendarView() {
 		} 
 
 		setDialog(props)
+	}
+
+	const handleCloseRecurrEvt = () => {
+		recurrDialog.fcinfo.revert()
+		setRecurrDialog({
+			open: false,
+			fcinfo: undefined,
+			record: undefined
+		})
+	}
+
+	const handleSubmitRecurrEvt = () => {
+		var record = recurrDialog.fcinfo.event.toJSON(),
+			action = recurrAction,
+			extProps = record.extendedProps,
+			parent = extProps._parent;
+
+		delete record["extendedProps"];
+		var data = {...record, ...extProps};
+		data.start_date = data.start;
+		data.end_date = data.end;
+
+		//TODO: handle resize
+		switch(action) {
+			case "0": //this event only
+				data.parent_id = parent.id;
+				delete data["id"];
+
+				var ex_dates = data.ex_dates || [];
+				ex_dates.push(data._original_start_date);
+				parent.ex_dates = ex_dates;
+
+				delete data["_parent"]
+				delete data["_original_start_date"]
+				data.recurring = false;
+
+				create('event', { data: data }, {
+					onError: (error) => {
+						notify("Error on creation") //TODO: make locale dynamic
+						console.error(error)
+					},
+					onSettled: (data, error) => {
+						update('event', { id: parent.id, data: parent }, {
+							onError: (error) => {
+								notify("Error on creation") //TODO: make locale dynamic
+								console.error(error)
+							},
+							onSettled: (data, error) => {
+								reloadEvents(() => {
+									setRecurrAction("0")
+									setRecurrDialog({
+										open: false,
+										fcinfo: undefined,
+										record: undefined
+									})
+								})
+							},
+						});
+					},
+				});
+				break;
+			case "1": //this and following events
+				delete data["id"];
+
+				parent.until = 1;
+				parent.until_date = data._original_start_date;
+
+				delete data["_parent"]
+				delete data["_original_start_date"]
+
+				update('event', { id: parent.id, data: parent }, {
+					onError: (error) => {
+						notify("Error on creation") //TODO: make locale dynamic
+						console.error(error)
+					},
+					onSettled: (oldevt, error) => {
+						create('event', { data: data }, {
+							onError: (error) => {
+								notify("Error on creation") //TODO: make locale dynamic
+								console.error(error)
+							},
+							onSettled: (data, error) => {
+								reloadEvents(() => {
+									setRecurrAction("0")
+									setRecurrDialog({
+										open: false,
+										fcinfo: undefined,
+										record: undefined
+									})
+								})
+							},
+						});
+					},
+				});
+				break;
+			case "2": //all events
+				data.id = parent.id;
+
+				delete data["_parent"]
+				delete data["_original_start_date"]
+
+				update('event', { id: data.id, data: data }, {
+					onError: (error) => {
+						notify("Error on creation") //TODO: make locale dynamic
+						console.error(error)
+					},
+					onSettled: (data, error) => {
+						reloadEvents(() => {
+							setRecurrAction("0")
+							setRecurrDialog({
+								open: false,
+								fcinfo: undefined,
+								record: undefined
+							})
+						})
+					},
+				})
+				break;
+			default:
+				//unhandled action			
+		}
 	}
 
 	return (
@@ -423,10 +571,12 @@ export default function CalendarView() {
 								anchorEl: info.el,
 								record: {
 									id: item.id.split("_")[0],
+									title: item.title,
 									start_date: item.start,
 									all_day: item.extendedProps.all_day,
 									end_date: item.end,
 									type: item.extendedProps.type,
+									employee_descr: item.extendedProps.employee_descr,
 									employee_id: item.extendedProps.employee_id,
 									customer_id: item.extendedProps.customer_id,
 									recurring: item.extendedProps.recurring,
@@ -435,7 +585,9 @@ export default function CalendarView() {
 									interval: item.extendedProps.interval,
 									until: item.extendedProps.until,
 									until_occurrences: item.extendedProps.until_occurrences,
-									until_date: item.extendedProps.until_date
+									until_date: item.extendedProps.until_date,
+									color: item.backgroundColor,
+									_rrule: item.extendedProps._rrule
 								}
 							})
 						}}
@@ -457,18 +609,26 @@ export default function CalendarView() {
 								until_occurrences: item.extendedProps.until_occurrences,
 								until_date: item.extendedProps.until_date
 							}
-
-							update('event', { id: recId, data: data }, {
-								onError: (error) => {
-									notify("Error on updating") //TODO: make locale dynamic
-									console.error(error)
-								},
-								onSettled: (data, error) => {
-									notify("Item updated") //TODO: make locale dynamic
-
-									shallowEditEvent(item);
-								}
-							})
+							
+							if (item.extendedProps.recurring) {
+								setRecurrDialog({
+									open: true,
+									record: data,
+									fcinfo: info
+								})
+							} else {
+								update('event', { id: recId, data: data }, {
+									onError: (error) => {
+										notify("Error on updating") //TODO: make locale dynamic
+										console.error(error)
+									},
+									onSettled: (data, error) => {
+										notify("Item updated") //TODO: make locale dynamic
+	
+										shallowEditEvent(item);
+									}
+								})	
+							}
 						}}
 						editable={true}
 						events={events}
@@ -481,44 +641,112 @@ export default function CalendarView() {
 							setCalendarValue(moment(dateInfo.start).add(moment(new Date()).weekday(), 'd').toDate());
 						}}
 					/>
-					{
-						/**
-						 * Dialog (popup) opened on "add button"
-						 * or on "select" calendar event
-						 */
-					}
-					<Dialog
-						open={dialog.open}
-						onClose={handleClose}
-					>
-						<Box>
-							<EventPopup
-								{...dialog}
-								sanitizeEmptyValues
-								resource="event"
-								onSubmit={postSave}>
-							</EventPopup>
-						</Box>
-					</Dialog>
-					{
-						/**
-						 * Add button
-						 */
-					}
-					<Fab color="primary" aria-label="add" style={{
-						right: 20,
-						position: 'fixed',
-						bottom: 10
-					}} onClick={handleOpen}>
-						<AddIcon />
-					</Fab>
 				</Box>
 			</Box>
+			{
+				/**
+				 * Dialog (popup) opened on "add button"
+				 * or on "select" calendar event
+				 */
+			}
+			<Dialog
+				open={dialog.open}
+				onClose={handleClose}
+			>
+				<DialogTitle>New event</DialogTitle>
+				<DialogContent>
+					<EventPopup
+						{...dialog}
+						sanitizeEmptyValues
+						resource="event"
+						onSubmit={postSave}>
+					</EventPopup>
+				</DialogContent>
+			</Dialog>
+			{
+				/**
+				 * Dialog (popup) opened on "recurring event" change
+				 * useful to choose what to do on the recurring timeline
+				 */
+			}
+			<Dialog open={recurrDialog.open}>
+				<DialogTitle>Edit recurring event</DialogTitle>
+				<DialogContent>
+				<FormControl>
+					<RadioGroup
+						aria-labelledby="demo-radio-buttons-group-label"
+						defaultValue="0"
+						name="radio-buttons-group"
+						onChange={e => {
+						  setRecurrAction(e.target.value)
+						}}
+					>
+						<FormControlLabel value="0" control={<Radio />} label="This event" />
+						<FormControlLabel value="1" control={<Radio />} label="This and following events" />
+						{
+							//disabled because it is treaky to handle
+							//<FormControlLabel value="2" control={<Radio />} label="All events" />
+						}
+					</RadioGroup>
+					</FormControl>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleCloseRecurrEvt}>Cancel</Button>
+					<Button onClick={handleSubmitRecurrEvt}>OK</Button>
+				</DialogActions>
+			</Dialog>
+			{
+				/**
+				 * Add button
+				 */
+			}
+			<Fab color="primary" aria-label="add" style={{
+				right: 20,
+				position: 'fixed',
+				bottom: 10
+			}} onClick={handleOpen}>
+				<AddIcon />
+			</Fab>
 			{
 				/**
 				 * Popover attached to the event on event click
 				 */
 			}
+			<Dialog 
+				open={editDialog.open}
+				onClose={() => {
+					setEditDialog({
+						open: false,
+						record: null,
+						anchorEl: null
+					});
+				}}>
+				<DialogTitle>Edit event</DialogTitle>
+				<DialogContent>
+					<EventPopup
+						sanitizeEmptyValues
+						record={editDialog.record}
+						resource="event"
+						onSubmit={eventEditSubmit}
+						onRemoveClick={() => {
+							_delete('event', { id: editDialog.record.id, previousData: editDialog.record }, {
+								onError: (error) => {
+									notify("Error on removing") //TODO: make locale dynamic
+									console.error(error)
+								},
+								onSettled: (data, error) => {
+									shallowRemoveEvent(editDialog.record.id)
+									setEditDialog({
+										open: false,
+										record: null
+									});
+								},
+							});
+						}}>
+					</EventPopup>
+				</DialogContent>
+			</Dialog>
+			
 			<Popover
 				open={popover.open}
 				anchorEl={popover.anchorEl}
@@ -530,10 +758,10 @@ export default function CalendarView() {
 					});
 				}}
 				PaperProps={{
-					style: { width: '600px' },
+					style: { width: '300px' },
 				  }}
 				anchorOrigin={{
-				  vertical: 'bottom',
+				  vertical: 'center',
 				  horizontal: 'left',
 				}}
 				transformOrigin={{
@@ -542,28 +770,60 @@ export default function CalendarView() {
 				}}
 			>
 				<Box>
-					<EventPopup
-						sanitizeEmptyValues
-						record={popover.record}
-						resource="event"
-						onSubmit={eventEditSubmit}
-						onRemoveClick={() => {
-							_delete('event', { id: popover.record.id, previousData: popover.record }, {
-								onError: (error) => {
-									notify("Error on removing") //TODO: make locale dynamic
-									console.error(error)
-								},
-								onSettled: (data, error) => {
-									shallowRemoveEvent(popover.record.id)
-									setPopover({
-										open: false,
-										record: null,
-										anchorEl: null
-									});
-								},
+					<Grid container justifyContent="flex-end">
+						<IconButton onClick={() => {
+							setEditDialog({ //TODO: handle recurring ev
+								open: true,
+								record: popover.record
+							});		
+							setPopover({
+								open: false,
+								record: null,
+								anchorEl: null
 							});
 						}}>
-					</EventPopup>
+							<EditIcon />
+						</IconButton>
+						<IconButton onClick={() => {debugger}}>
+							<DeleteIcon />
+						</IconButton>
+						<IconButton onClick={() => {debugger}}>
+							<CloseIcon />
+						</IconButton>
+					</Grid>
+					<Grid container justifyContent="flex-start">
+						<List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+							<ListItem>
+								<ListItemIcon>
+									<SquareRoundedIcon style={{ color: popover.record?.color }} />
+								</ListItemIcon>
+								<ListItemText primary={popover.record?.title} />
+							</ListItem>
+							<ListItem>
+								<ListItemIcon>
+									<EventRoundedIcon />
+								</ListItemIcon>
+								<ListItemText primary={popover.record?.employee_descr} />
+							</ListItem>
+							<ListItem>
+								<ListItemIcon>
+									<QueryBuilderRoundedIcon />
+								</ListItemIcon>
+								<ListItemText 
+								primary={new Date(popover.record?.start_date).toLocaleString()} 
+								secondary={new Date(popover.record?.end_date).toLocaleString()} />
+							</ListItem>
+							<ListItem style={{
+								display: popover.record?._rrule == null ? "none" : "default"
+							}}>
+								<ListItemIcon>
+									<RepeatRoundedIcon />
+								</ListItemIcon>
+								<ListItemText 
+								primary={popover.record?._rrule?.toText()} />
+							</ListItem>
+						</List>
+					</Grid>
 				</Box>
 			</Popover>
 		</div >

@@ -75,6 +75,10 @@ module.exports = (sequelize) => {
             type: DataTypes.TEXT,
             allowNull: true
         },
+        ex_dates: {
+            type: DataTypes.ARRAY(DataTypes.DATE), //0: never, 1: date, 2: occurrences
+            allowNull: true,
+        },
         //handle custom events on recurring series
         parent_id: {
             type: DataTypes.BIGINT,

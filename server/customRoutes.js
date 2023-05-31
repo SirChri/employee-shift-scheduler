@@ -31,7 +31,8 @@ router.get('/timeline-event', function(req, res, next) {
                 `SELECT 
                     a.*, 
                     c."name" "customer_descr",
-                    e."color"
+                    e."color",
+                    e."fullname" "employee_descr"
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
                 JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
@@ -40,7 +41,8 @@ router.get('/timeline-event', function(req, res, next) {
                 SELECT 
                     a.*, 
                     c."name" "customer_descr",
-                    e."color"
+                    e."color",
+                    e."fullname" "employee_descr"
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
                 JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
@@ -57,7 +59,8 @@ router.get('/timeline-event', function(req, res, next) {
                 `SELECT 
                     a.*, 
                     c."name" "customer_descr",
-                    e."color"
+                    e."color",
+                    e."fullname" "employee_descr"
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
                 JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
@@ -66,7 +69,8 @@ router.get('/timeline-event', function(req, res, next) {
                 SELECT 
                     a.*, 
                     c."name" "customer_descr",
-                    e."color"
+                    e."color",
+                    e."fullname" "employee_descr"
                 FROM "event" a
                 LEFT JOIN customer c on a.customer_id = c.id
                 JOIN employee e on a.employee_id = e.id AND e.deleted_at IS NULL
@@ -81,5 +85,61 @@ router.get('/timeline-event', function(req, res, next) {
         }
 }
 });
+
+/**
+ * 
+ */
+router.post('/recurring-event', function(req, res, next) {
+    var data = req.body;
+
+    switch(data.type) {
+        case 0: //this event only  
+            sequelize.query(
+                `SELECT 
+                    a.*, 
+                    c."name" "customer_descr",
+                    e."color",
+                    e."fullname" "employee_descr"
+                FROM "event" a
+                LEFT JOIN customer c on a.customer_id = c.id
+                JOIN employee e on a.employee_id = e.id
+                WHERE a.id = :id`, {
+                    replacements: params,
+                    type: QueryTypes.INSERT
+                }).then((data, meta) => {
+                res.status(200).json(data[0])
+            }).catch(err => {
+                return res.status(500).send({ message: err })
+            })
+            break;
+        case 1: //this and following events
+            
+            break;
+        case 2: //all events
+            
+            break;
+        default:
+            // unhandled type
+    }
+    if (params.id) {
+        sequelize.query(
+            `SELECT 
+                a.*, 
+                c."name" "customer_descr",
+                e."color",
+                e."fullname" "employee_descr"
+            FROM "event" a
+            LEFT JOIN customer c on a.customer_id = c.id
+            JOIN employee e on a.employee_id = e.id
+            WHERE a.id = :id`, {
+                replacements: params,
+                type: QueryTypes.INSERT
+            }).then((data, meta) => {
+            res.status(200).json(data[0])
+        }).catch(err => {
+            return res.status(500).send({ message: err })
+        })
+    }
+})
 
 module.exports = router;
