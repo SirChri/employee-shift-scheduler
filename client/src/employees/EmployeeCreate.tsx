@@ -14,14 +14,8 @@ export const EmployeeCreate = () => {
     const redirect = useRedirect();
     const translate = useTranslate();
 
-    const onSuccess = (data:any) => {
-        notify(`Post created successfully`); // default message is 'ra.notification.created'
-
-        //TODO: handle calendar events creation here
-    };
-
     return (
-        <Create redirect="list" mutationOptions={{ onSuccess }}>
+        <Create redirect="list">
             <SimpleForm>
                 <Grid container spacing={2}>
                     <Grid item xs={4}>
@@ -46,28 +40,6 @@ export const EmployeeCreate = () => {
                         <TextInput source="email" fullWidth label={translate(`resources.employee.fields.email`)} />
                     </Grid>
                 </Grid>
-
-            <Box width="100%" height="500px">
-                <FullCalendar
-                    locale="it" //TODO: localize
-                    height="500px"
-                    initialDate="1996-09-29"
-                    selectable={true}
-                    slotMinTime="05:00:00"
-                    slotMaxTime="22:00:00"
-                    dayHeaderContent={(arg) => {
-                        return arg.date.toLocaleString("it", {weekday: 'long'}) //TODO: localize
-                    }}
-                    plugins={[timeGrid, dayGrid, interactionPlugin]}
-                    headerToolbar= {{
-                        left: '',
-                        center: '',
-                        right: ''
-                    }}
-                    eventMaxStack={5}
-                    initialView="timeGridWeek"
-                />
-            </Box>
             </SimpleForm>
 
         </Create>
