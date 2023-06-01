@@ -7,7 +7,7 @@ import { dataProvider } from '../dataProvider'
 import interactionPlugin from '@fullcalendar/interaction';
 import Dialog from '@mui/material/Dialog';
 import AddIcon from '@mui/icons-material/Add';
-import { useNotify, useCreate, useUpdate, useGetList, Loading, useDelete } from 'react-admin';
+import { useNotify, useCreate, useUpdate, useGetList, Loading, useDelete, useTranslate, useLocaleState } from 'react-admin';
 import Fab from '@mui/material/Fab';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -19,7 +19,7 @@ import moment from 'moment';
 import { EventPopup } from '../components/EventPopup';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { EventContentArg, EventInput } from '@fullcalendar/core';
+import { EventChangeArg, EventContentArg, EventInput } from '@fullcalendar/core';
 import rrulePlugin from '@fullcalendar/rrule'
 import { RRule, RRuleSet } from 'rrule';
 
@@ -34,6 +34,8 @@ import RepeatRoundedIcon from '@mui/icons-material/RepeatRounded';
 
 export default function CalendarView() {
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
+    const translate = useTranslate();
+	const [locale] = useLocaleState();
 	const calendarRef = useRef<FullCalendar>(null);
 	const [create] = useCreate();
 	const [update] = useUpdate();
@@ -229,36 +231,36 @@ export default function CalendarView() {
 		data.customer_id = data.customer_id === "" ? null : data.customer_id;
 		create('event', { data }, {
 			onError: (error) => {
-				notify("Error on creation") //TODO: make locale dynamic
+				notify(translate("ess.calendar.event.error_create")) 
 				console.error(error)
 			},
 			onSettled: (data, error) => {
 				handleClose();
 				reloadEvents(() => {
-					notify("Item succesfully created") //TODO: make locale dynamic
+					notify(translate("ess.calendar.event.success_create")) 
 				})
 			},
 		});
 	}
 
-	const eventEditSubmit = (record: any) => {
-		const recId = record?.id || editDialog.record;
+	const eventEditSubmit = (info?: EventChangeArg) => {
+		const record = info && info.event ? flattenRecord(info.event.toJSON()) : info || editDialog.record;
 
 		if (record?._parent) {
 			setRecurrDialog({
 				open: true,
 				record: record,
-				fcinfo: undefined,
+				fcinfo: info,
 				event: "edit"
 			})
 		} else {
-			update('event', { id: recId, data: record }, {
+			update('event', { id: record.id, data: record }, {
 				onError: (error) => {
-					notify("Error on updating") //TODO: make locale dynamic
+					notify(translate("ess.calendar.event.error_update")) 
 					console.error(error)
 				},
 				onSettled: (data, error) => {
-					notify("Item updated") //TODO: make locale dynamic
+					notify(translate("ess.calendar.event.success_update")) 
 
 					shallowEditEvent(record);
 				}
@@ -279,10 +281,11 @@ export default function CalendarView() {
 		} else {
 			_delete('event', { id: record.id, previousData: record }, {
 				onError: (error) => {
-					notify("Error on removing") //TODO: make locale dynamic
+					notify(translate("ess.calendar.event.error_delete"))
 					console.error(error)
 				},
 				onSettled: (data, error) => {
+					notify(translate("ess.calendar.event.success_delete"))
 					shallowRemoveEvent(record.id)
 					setEditDialog({
 						open: false,
@@ -344,6 +347,8 @@ export default function CalendarView() {
 
 		const callback = () => {
 			reloadEvents(() => {
+				notify(translate("ess.calendar.event.success_update"))
+
 				setRecurrAction("0")
 				setPopover({
 					open: false,
@@ -378,17 +383,17 @@ export default function CalendarView() {
 
 				update('event', { id: parent.id, data: parent }, {
 					onError: (error) => {
-						notify("Error on creation") //TODO: make locale dynamic
+						notify(translate("ess.calendar.event.error"))
 						console.error(error)
 					},
-					onSettled: (data, error) => {
+					onSettled: (d, error) => {
 						if (event == "edit") {
 							create('event', { data: data }, {
 								onError: (error) => {
-									notify("Error on creation") //TODO: make locale dynamic
+									notify(translate("ess.calendar.event.error"))
 									console.error(error)
 								},
-								onSettled: (data, error) => {
+								onSettled: (d, error) => {
 									callback()
 								}
 							});
@@ -411,14 +416,14 @@ export default function CalendarView() {
 
 				update('event', { id: parent.id, data: parent }, {
 					onError: (error) => {
-						notify("Error on creation") //TODO: make locale dynamic
+						notify(translate("ess.calendar.event.error"))
 						console.error(error)
 					},
 					onSettled: (oldevt, error) => {
 						if (event == "edit") {
 							create('event', { data: data }, {
 								onError: (error) => {
-									notify("Error on creation") //TODO: make locale dynamic
+									notify(translate("ess.calendar.event.error"))
 									console.error(error)
 								},
 								onSettled: (data, error) => {
@@ -439,7 +444,7 @@ export default function CalendarView() {
 
 				_delete('event', { id: data.id, previousData: parent }, {
 					onError: (error) => {
-						notify("Error on removing") //TODO: make locale dynamic
+						notify(translate("ess.calendar.event.error"))
 						console.error(error)
 					},
 					onSettled: (data, error) => {
@@ -489,6 +494,7 @@ export default function CalendarView() {
 								showFixedNumberOfWeeks={true}
 								//onChange={setCalendarValue} 
 								value={calendarValue}
+								locale={locale}
 								onClickDay={(value) => {
 									let calendar = calendarRef.current;
 									calendar?.getApi().gotoDate(value)
@@ -527,7 +533,7 @@ export default function CalendarView() {
 													<ListItemText
 														id={labelId}
 														primary={record.fullname}
-														secondary={"Matricola: " + record.number} />
+														secondary={translate("ess.calendar.calendarlist.number") + ": " + record.number} />
 												</ListItemButton>
 											</ListItem>
 										)
@@ -546,7 +552,7 @@ export default function CalendarView() {
 				<Box width={isSmall ? 'auto' : 'calc(100% - 18em)'} height="85vh">
 					<FullCalendar
 						ref={calendarRef}
-						locale="it"
+						locale={locale}
 						height="100%"
 						selectable={true}
 						slotMinTime="05:00:00"
@@ -595,7 +601,7 @@ export default function CalendarView() {
 							})
 						}}
 						eventChange={(info) => {
-							eventEditSubmit(data)
+							eventEditSubmit(info)
 						}}
 						editable={true}
 						events={events}
@@ -648,8 +654,8 @@ export default function CalendarView() {
 								setRecurrAction(e.target.value)
 							}}
 						>
-							<FormControlLabel value="0" control={<Radio />} label="This event" />
-							<FormControlLabel value="1" control={<Radio />} label="This and following events" />
+							<FormControlLabel value="0" control={<Radio />} label={translate("ess.calendar.event.recurring.thisev")} />
+							<FormControlLabel value="1" control={<Radio />} label={translate("ess.calendar.event.recurring.thisandfoll")} />
 							{
 								//disabled because it is tricky to handle
 								//<FormControlLabel value="2" control={<Radio />} label="All events" />
@@ -725,7 +731,7 @@ export default function CalendarView() {
 				<Box sx={{ m: 0.5 }}>
 					<Grid container justifyContent="flex-end">
 						<IconButton onClick={() => {
-							setEditDialog({ //TODO: handle recurring ev
+							setEditDialog({
 								open: true,
 								record: popover.record
 							});

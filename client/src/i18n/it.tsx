@@ -169,7 +169,7 @@ const customItalianMessages: TranslationMessages = {
           oneOf: 'Deve essere uno di: %{options}',
           regex: 'Deve rispettare il formato (espressione regolare): %{pattern}'
         },
-saved_queries: {
+        saved_queries: {
             label: 'Saved queries',
             query_name: 'Query name',
             new_label: 'Save current query...',
@@ -235,7 +235,26 @@ saved_queries: {
     },
     ess: {
       calendar: {
-        name: "Calendario"
+        name: "Calendario",
+        event: {
+          error: "Qualcosa è andato storto.",
+          error_create: "Errore durante la creazione dell'evento",
+          success_create: "Evento creato correttamente",
+          error_update: "Errore durante l'aggiornamento dell'evento",
+          success_update: "Evento aggiornato correttamente",
+          error_delete: "Errore durante la cancellazione dell'evento",
+          success_delete: "Evento eliminato correttamente",
+          recurring: {
+            thisev: "Questo evento",
+            thisandfoll: "Questo e gli eventi futuri"
+          }
+        },
+        calendarlist: {
+          number: "Matricola"
+        },
+      },
+      summary: {
+        name: "Report"
       }
     }
 };

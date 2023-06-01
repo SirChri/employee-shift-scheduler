@@ -5,21 +5,43 @@ import MailIcon from '@mui/icons-material/Mail';
 import CategoryIcon from '@mui/icons-material/Category';
 import { ColorField } from '../components/ColorInput';
 import BadgeIcon from '@mui/icons-material/Badge';
+import { downloadCSV } from 'react-admin';
+import jsonExport from 'jsonexport/dist';
 
 const sort = { field: 'id', order: 'DESC' };
 const postFilters = [
-    <ReferenceArrayInput source="customer_id" reference="customer" alwaysOn >
+    <ReferenceArrayInput source="customer_id" reference="customer" alwaysOn isRequired={true}>
         <SelectArrayInput optionText="name" />
     </ReferenceArrayInput>,
-    <ReferenceArrayInput source="employee_id" reference="employee" alwaysOn >
+    <ReferenceArrayInput source="employee_id" reference="employee" alwaysOn isRequired={true}>
         <SelectArrayInput optionText="fullname" />
     </ReferenceArrayInput>
 ];
 
 const listFilters = [
-    <DateInput source="start_date_gte" alwaysOn />,
-    <DateInput source="end_date_lte" alwaysOn />,
+    <DateInput source="start_date_gte" alwaysOn/>,
+    <DateInput source="end_date_lte" alwaysOn/>,
 ];
+
+const exporter = (events:any) => {
+    const columns = ['start_date', 'end_date', 'type', 'employee_fullname', 'customer_name', 'hours']
+    
+    events.map((ev: any) => {
+        ev["employee_fullname"] = ev.employee.fullname;
+        ev["customer_name"] = ev.customer.name;
+
+        Object.keys(ev).forEach(key => {
+            if (!columns.includes(key))
+                delete ev[key]
+        });
+        return ev;
+    });
+    jsonExport(events, {
+        headers: ['employee_fullname', 'customer_name', 'type', 'start_date', 'end_date', 'hours']
+    }, (err, csv) => {
+        downloadCSV(csv, 'events');
+    });
+};
 
 export default function EmployeeSummaryList() {
 	const { data, total, isLoading, error } = useGetList(
@@ -55,7 +77,7 @@ export default function EmployeeSummaryList() {
 
     return (
         <div>
-            <List resource='event' aside={<PostFilterSidebar />} filters={listFilters} sort={{ field: 'start_date', order: 'DESC' }}>
+            <List resource='event' aside={<PostFilterSidebar />} filters={listFilters} sort={{ field: 'start_date', order: 'DESC' }} exporter={exporter}>
                 <Datagrid bulkActionButtons={false}
                 >
                     <DateField source="start_date" showTime={true} />

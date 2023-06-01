@@ -31,7 +31,26 @@ const customEnglishMessages: TranslationMessages = {
   },
   ess: {
     calendar: {
-      name: "Calendar"
+      name: "Calendar",
+      event: {
+        error: "Something went wrong.",
+        error_create: "Error on event creation",
+        success_create: "Event created",
+        error_update: "Error on event update",
+        success_update: "Event updated",
+        error_delete: "Error on event delete",
+        success_delete: "Event removed",
+        recurring: {
+          thisev: "This event",
+          thisandfoll: "This and the following events"
+        }
+      },
+      calendarlist: {
+        number: "Number"
+      },
+    },
+    summary: {
+      name: "Report"
     }
   }
 };

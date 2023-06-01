@@ -3,6 +3,7 @@ import { Tabs, Tab, Toolbar, AppBar, Box, Typography } from '@mui/material';
 import { Link, matchPath, useLocation } from 'react-router-dom';
 import { UserMenu, Logout, LoadingIndicator, useTranslate } from 'react-admin';
 import BadgeIcon from '@mui/icons-material/Badge';
+import { LocalesMenuButton } from 'react-admin';
 
 const Header = () => {
     const location = useLocation();
@@ -55,7 +56,7 @@ const Header = () => {
                             value="/calendar"
                         />
                         <Tab
-                            label={'Summary'}
+                            label={translate(`ess.summary.name`)}
                             component={Link}
                             to="/summary"
                             value="/summary"
@@ -80,6 +81,12 @@ const Header = () => {
                         </Tabs>
                     </Box>
                     <Box display="flex">
+                        <LocalesMenuButton
+                            languages={[
+                                { locale: 'en', name: 'English' },
+                                { locale: 'it', name: 'Italiano' },
+                            ]}
+                        />
                         <LoadingIndicator
                             sx={{
                                 '& .RaLoadingIndicator-loader': {

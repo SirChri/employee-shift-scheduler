@@ -84,3 +84,6 @@ code {
   background: #006edc !important;
   color: white;
 }
+.fc-event {
+  overflow: hidden;
+}

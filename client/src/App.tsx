@@ -28,7 +28,7 @@ const i18nProvider = polyglotI18nProvider(locale => {
 
     // Always fallback on english
     return englishMessages;
-}, 'it');
+}, 'en');
 
 const App = () => (
   <Admin 
