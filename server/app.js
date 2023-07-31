@@ -124,9 +124,30 @@ for (const [routeName, routeController] of Object.entries(standardRoutes)) {
                     let element = filter[key];
 
                     let ft = {};
+                    let out = {};
+                    
+                    //search feature
+                    if (element["field"] === "q") {
+                        ft[Op.iLike] = `%${element["value"]}%`
+
+                        switch(routeName) {
+                            case "employee":
+                                out["fullname"] = ft;
+                                break;
+                            case "customer":
+                                out["name"] = ft;
+                                break;
+                            //TODO: handle search for all resources
+                            default:
+                                out["id"] = ft;
+                        }
+                        
+                        filters.push(out);
+                        continue;
+                    }
+
                     ft[ops[element["operator"]]] = element["value"];
 
-                    let out = {};
                     out[element["field"]] = ft;
 
                     //for event only

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
-import { BooleanInput, DateInput, DateTimeInput, FormDataConsumer, ReferenceInput, required, SelectInput, SimpleForm, TimeInput, useCreate, useDelete, useUpdate } from "react-admin";
+import { AutocompleteInput, BooleanInput, DateInput, DateTimeInput, FormDataConsumer, ReferenceInput, required, SelectInput, SimpleForm, TimeInput, useCreate, useDelete, useUpdate } from "react-admin";
 import { textColorOnHEXBg, eventTypeEnum } from '../utils/Utilities';
 import { Create, SaveButton, Toolbar, useRedirect, useNotify } from 'react-admin';
 import { Box, Grid, IconButton } from '@mui/material';
@@ -61,17 +61,18 @@ export const EventPopup = (props: any) => {
                         defaultValue="j"/>
                     </Grid>
                     <Grid item xs={4}>
-                        <ReferenceInput source="employee_id" reference="employee" label="Employee" validate={required()} >
-                            <SelectInput optionText="fullname" validate={required()} />
-                        </ReferenceInput>
+                            <ReferenceInput source="employee_id" reference="employee" label="Employee" >
+                                <AutocompleteInput optionText="fullname" validate={required()} />
+                            </ReferenceInput>
                     </Grid>
                     <Grid item xs={4}>
                         {formData.type === "j" && 
                             <ReferenceInput 
                             source="customer_id" 
-                            reference="customer" 
+                            reference="customer"  
+                            validate={required()}
                             label="Customer">
-                                <SelectInput optionText="name" validate={required()} />
+                                <AutocompleteInput optionText="name" validate={required()}/>
                             </ReferenceInput>
                         }
                     </Grid>
