@@ -1,0 +1,385 @@
+{
+	"info": {
+		"_postman_id": "e0b5d8cf-9798-496d-a4c0-1a1519d78a7d",
+		"name": "Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9293929"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get current session",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/session",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"session"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employee",
+			"item": [
+				{
+					"name": "Create employee",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"active\": true,\n    \"color\": \"#000000\",\n    \"email\": \"test@f.i\",\n    \"name\": \"Chris2\",\n    \"surname\": \"kl\",\n    \"number\": \"6789\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/employee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"employee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update employee",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"name\": \"Chris2\",\n    \"surname\": \"kl\",\n    \"fullname\": \"Chris2 kl\",\n    \"number\": \"6789\",\n    \"phone\": null,\n    \"email\": \"test@f.ita\",\n    \"color\": \"#000000\",\n    \"weekhrs\": null,\n    \"active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/employee/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"employee",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get employees",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/employee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"employee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get employee",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/employee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"employee"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Events in ",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"start\": \"2024-03-16T23:00:00.000Z\",\n    \"end\": \"2024-04-25T23:00:00.000Z\",\n    \"groups\": null,\n    \"detailed\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/event/in",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"event",
+						"in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"start\": \"2024-04-01T07:22:36.840Z\",\n    \"end\": \"2024-04-20T07:22:36.840Z\",\n    \"groups\": [],\n    \"detailed\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/event/in",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"event",
+						"in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get Copy",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8081/api/event",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"event"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create customer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"address\": \"via testo\",\n    \"name\": \"Azienda 1\",\n    \"vat\": \"123IT\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/customer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"customer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create calendar",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"mio calendario 3\",\n    \"employee\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/calendar",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"calendar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create event",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"test 2\",\n    \"summary\": \"oooooo un bel evento eh\",\n    \"dtstamp\": \"2024-04-05T07:22:36.840Z\",\n    \"dtstart\": \"2024-04-05T14:00:00.000Z\",\n    \"dtend\": \"2024-04-05T15:30:00.000Z\",\n    \"timezone\": \"Europe/Rome\",\n    \"recurring\": true,\n    \"until_type\": 0,\n    \"frequency\": 2,\n    \"type\": 1,\n    \"customer\": 1,\n    \"employee\": 1,\n    \"calendar\": 1   \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/event",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"event"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update event",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": 27,\n    \"uid\": \"ac54f271-4b54-4f35-87a0-b792db353145\",\n    \"rrule\": \"FREQ=WEEKLY\",\n    \"recurring\": true,\n    \"ical\": \"BEGIN:VEVENT\\r\\nDTSTAMP:20240411T092518Z\\r\\nDTSTART;TZID=Z:20240303T100000Z\\r\\nDTEND;TZID=Z:20240303T123000Z\\r\\nSUMMARY:JOB\\r\\nUID:ac54f271-4b54-4f35-87a0-b792db353145\\r\\nSEQUENCE:1\\r\\nEXDATE:20240310T100000,20240331T090000\\r\\nRRULE:FREQ=WEEKLY\\r\\nEND:VEVENT\\r\\n\",\n    \"title\": \"JOB\",\n    \"summary\": \"JOB\",\n    \"dtstamp\": \"2024-03-05T07:22:36.84Z\",\n    \"dtstart\": \"2024-03-03T10:00:00Z\",\n    \"dtend\": \"2024-03-03T12:30:00Z\",\n    \"ex_dates\": \"2024-03-10T10:00:00.000Z;2024-03-31T09:00:00.000Z\",\n    \"timezone\": \"Europe/Rome\",\n    \"sequence\": 1,\n    \"until_type\": 0,\n    \"until_date\": null,\n    \"until_occurrences\": null,\n    \"interval\": null,\n    \"frequency\": 1,\n    \"recurrence_id\": null,\n    \"day\": null,\n    \"status\": null,\n    \"all_day\": null,\n    \"type\": 1,\n    \"customer\": 1,\n    \"employee\": 1,\n    \"calendar\": 1,\n    \"duration\": null,\n    \"parent\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/event/27",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"event",
+						"27"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

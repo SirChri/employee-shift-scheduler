@@ -1,0 +1,65 @@
+{
+    "name": "ess-ui",
+    "version": "0.9",
+    "private": true,
+    "dependencies": {
+        "@fullcalendar/core": "^6.1.11",
+        "@fullcalendar/daygrid": "^6.1.11",
+        "@fullcalendar/interaction": "^6.1.11",
+        "@fullcalendar/react": "^6.1.11",
+        "@fullcalendar/rrule": "^6.1.11",
+        "@fullcalendar/timegrid": "^6.1.11",
+        "@mui/material": "^5.15.15",
+        "@testing-library/jest-dom": "^6.4.2",
+        "@testing-library/react": "^15.0.2",
+        "@testing-library/user-event": "^14.5.2",
+        "dotenv": "^16.4.5",
+        "moment": "^2.30.1",
+        "ra-data-simple-rest": "^4.16.16",
+        "react": "^18.2.0",
+        "react-admin": "^4.16.16",
+        "react-calendar": "^4.8.0",
+        "react-dom": "^18.2.0",
+        "react-hook-form": "7.51.3",
+        "react-progressbar": "^15.4.1",
+        "typescript": "^4.9.5",
+        "web-vitals": "^3.5.2",
+        "xss": "^1.0.15"
+    },
+    "devDependencies": {
+        "@types/jsonexport": "^3.0.5",
+        "@types/node": "^20.12.7",
+        "@types/react-calendar": "^3.9.0",
+        "@types/react-color": "^3.0.12",
+        "@types/react-datepicker": "^6.2.0",
+        "ra-i18n-polyglot": "^4.16.16",
+        "ra-jsonapi-client": "^0.10.0",
+        "ra-language-english": "^4.16.16",
+        "react-color": "^2.19.3",
+        "react-scripts": "^4.0.3"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "proxy": "http://localhost:8081"
+}

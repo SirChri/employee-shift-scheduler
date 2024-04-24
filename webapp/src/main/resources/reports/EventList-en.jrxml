@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.2.final using JasperReports Library version 6.21.2-8434a0bd7c3bbc37cbf916f2968d35e4b165821a  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EventList" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="3dba6f62-0690-407f-a46d-01b11505b34e">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="start" class="java.lang.String"/>
+	<parameter name="end" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="title" class="java.lang.String"/>
+	<field name="dtstart" class="java.lang.String"/>
+	<field name="dtend" class="java.lang.String"/>
+	<field name="duration" class="java.lang.Double"/>
+	<field name="type" class="java.lang.String"/>
+	<field name="employee_fullname" class="java.lang.String"/>
+	<variable name="SumDuration" class="java.lang.Double" resetType="Group" resetGroup="Type" calculation="Sum">
+		<variableExpression><![CDATA[$F{duration}]]></variableExpression>
+		<initialValueExpression><![CDATA[Double.valueOf(0)]]></initialValueExpression>
+	</variable>
+	<group name="Employee">
+		<groupExpression><![CDATA[$F{employee_fullname}]]></groupExpression>
+		<groupHeader>
+			<band height="41">
+				<textField>
+					<reportElement x="0" y="10" width="550" height="30" uuid="66cec0df-8381-4fd0-9d80-5dbbc07b6946"/>
+					<textElement verticalAlignment="Middle" markup="html">
+						<font fontName="SansSerif" size="14"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Employee: <b>"+$F{employee_fullname}+"</b>"]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<group name="Type">
+		<groupExpression><![CDATA[$F{type}]]></groupExpression>
+		<groupHeader>
+			<band height="30">
+				<textField>
+					<reportElement x="20" y="0" width="430" height="30" uuid="b5a4aa05-fe63-4199-9286-5c80912e9be9"/>
+					<box>
+						<bottomPen lineWidth="0.25" lineColor="#999999"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="SansSerif" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{type}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="Type">
+					<reportElement x="450" y="0" width="100" height="30" uuid="4c6b4159-19e2-4bae-bae5-a57c021324a0"/>
+					<box>
+						<bottomPen lineWidth="0.25" lineColor="#999999"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font fontName="SansSerif" size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[String.format( "%.2f h", $V{SumDuration} )]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="230" height="30" uuid="827da11e-d466-425c-9329-5483af44b16e"/>
+				<textElement>
+					<font fontName="SansSerif" size="22" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Event Summary]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="30" width="550" height="30" uuid="b424f238-6113-414d-964d-c9810db843c3"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="16"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Period range "+$P{start}+" - "+$P{end}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<textField textAdjust="ScaleFont">
+				<reportElement x="40" y="0" width="150" height="30" uuid="5cad9672-297d-4bc0-a941-08160041d3fc">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="4430788e-61a1-4936-9ca4-75b87be053ad"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.25" lineColor="#999999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title} != null ? $F{title} : "-"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="190" y="0" width="130" height="30" uuid="45273cda-919c-4399-86ce-c53196b5860d">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="745bb736-ff08-48fc-910e-39c937e8599e"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.25" lineColor="#999999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dtstart}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="0" width="130" height="30" uuid="1fc933fe-3de4-4f57-b73e-e37798d70181">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="34db6fe9-e824-480f-afd0-2e4ab68e07b3"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.25" lineColor="#999999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dtend}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="450" y="0" width="100" height="30" uuid="055c854c-d21f-4073-aefb-eeefebfc847d">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b85c7096-4c83-4ff4-b750-b5d640b52246"/>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.25" lineColor="#999999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<textFieldExpression><![CDATA[String.format( "%.2f h", $F{duration} )]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

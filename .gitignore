@@ -8,5 +8,7 @@
 node_modules
 **/node_modules
 
-#package-lock.json
-#**/package-lock.json
+webapp/target
+
+webapp/src/main/frontend/build
+webapp/src/main/frontend/package-lock.json
