@@ -29,7 +29,12 @@ The default admin user for both versions is `admin:admin`. Change the password w
 Launch the application quickly using the provided `docker-compose.yml` file with the command: `docker-compose up --build`. Customize the `.env` file as needed.
 
 ### Non-Docker Version
-Build the WAR file with the command `mvn clean package`.
+- Download the latest `war` file from Releases
+- Download the latest apache-tomcat software
+- Put the `war` file inside the tomcat webapps folder
+- Configure the `WEB-INF/classes/application.properties` as you wish
+- Start tomcat
+
 **Note**: Make sure the target database exists in your PostgreSQL instance; the required tables will be automatically created.
 
 ## Technology Stack
