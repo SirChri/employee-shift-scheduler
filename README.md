@@ -1,44 +1,53 @@
-# Employee Shift Scheduler
-![Home screen](docs/images/home-calendar.png?raw=true "Home screen")
-A (very) simple but effective employee shift scheduler based on React (react-admin) as frontend and Java (SpringBoot) + PostgreSQL as backend.<br>
+# Shift Scheduler
 
-# Main Features
-- Manage and store Users who can authenticate to and use the platform (no permissions handled yet);
-- Manage and store Employees who work for a specific customer at a time;
-- Manage and store Customers;
-- Event report:
+![Home screen](docs/images/home-calendar.png?raw=true "Home screen")
+
+A straightforward and efficient employee shift scheduler featuring a React frontend and a Java (Spring Boot) backend with PostgreSQL. This application allows you to manage employee schedules and other related entities.
+
+## Key Features
+- **User Management**: Manage and store users who can authenticate and use the platform (no permissions handling yet).
+- **Employee Management**: Manage and store employee records for specific customers.
+- **Customer Management**: Handle customer records and related data.
+- **Event Management**: Create, manage, and schedule events, including recurring events following the iCalendar standard.
+- **Event Reporting**: Generate event reports with ease.
 ![Event report](docs/images/event-report.png?raw=true "Event report")
 
-# Requirements
-## Docker version
-- Just Docker
+## Requirements
 
-## Non-Docker version
-- PostgreSQL (tested with v14, but should be ok with others as well)
-- Apache Tomcat 
+### Docker Version
+- Docker is the only requirement.
 
-# Quick setup
-## Docker version
-I already bundled a docker-compose configuration file in order to quickly launch the application with the simple command: `docker-compose up --build`.
+### Non-Docker Version
+- PostgreSQL (tested with v14, but likely compatible with other versions).
+- Apache Tomcat.
 
-## Standard version
-You can build the *war* file with the simple `mvn clean package` command.<br>
-**IMPORTANT**: on you psql instance there must exists the db you want to use as app db. Necessary tables will be created automatically by sequilize.
+## Quick Setup
 
-# Under the hood
-- frontend is written in React with typescript and is based on [https://marmelab.com/react-admin/](react-admin)
-- backend is written in Java with SpringBoot
-- Calendar is entirely based on [https://fullcalendar.io/](fullcalendar) library;
-- all requests to the server require authentication;
+The default admin user for both versions is `admin:admin`. Change the password within the application for better security.
 
-## ER Diagram
+### Docker Version
+Launch the application quickly using the provided `docker-compose.yml` file with the command: `docker-compose up --build`. Customize the `.env` file as needed.
+
+### Non-Docker Version
+Build the WAR file with the command `mvn clean package`.
+**Note**: Make sure the target database exists in your PostgreSQL instance; the required tables will be automatically created.
+
+## Technology Stack
+
+- **Frontend**: Built using React with TypeScript, based on [react-admin](https://marmelab.com/react-admin/).
+- **Backend**: Developed with Java and Spring Boot.
+- **Calendar**: Utilizes the [fullcalendar](https://fullcalendar.io/) library.
+- **Security**: All server requests require authentication.
+
+## Entity-Relationship Diagram
 ![ER diagram](docs/images/er.png?raw=true "Entity-Relationship Diagram")
 
-# TODOs
-- handle constraints, such as:
-  - no overlaps between different agenda entries for the same employee
-  - dynamically handle "exclusion" date-time slots in agenda entry creation or update (e.g. exclude weekends);
-  - end date must be greater than begin date in agenda entry creation or update;
-- handle bulk updates/inserts
-- handle agenda entry clone action
-- improve documentation and readme
+## Future Improvements
+
+- Enforce constraints such as:
+  - Preventing schedule overlaps for the same employee.
+  - Dynamic handling of exclusion date-time slots during schedule creation or updates (e.g., exclude weekends).
+  - Ensuring end dates are later than start dates during schedule creation or updates.
+- Handle bulk updates and inserts.
+- Implement an entry clone action for schedules.
+- Enhance documentation and README.
