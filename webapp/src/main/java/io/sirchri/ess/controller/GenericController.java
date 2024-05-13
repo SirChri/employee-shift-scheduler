@@ -122,7 +122,7 @@ public abstract class GenericController<T extends GenericEntity<T>> {
             // Throw an exception if IDs do not match
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID mismatch");
         }
-
+        
         // Update the entity and return the updated entity as a map
         return ResponseEntity.ok(entityToMap(service.update(updated)));
     }

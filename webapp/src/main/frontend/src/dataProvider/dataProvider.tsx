@@ -120,7 +120,7 @@ export default (
     update: (resource, params) =>
         httpClient(`${apiUrl}/${resource}/${params.id}`, {
             method: 'PUT',
-            body: JSON.stringify(params.data),
+            body: JSON.stringify({...params.data, id: params.id}),
         }).then(({ json }) => ({ data: json })),
 
     // simple-rest doesn't handle provide an updateMany route, so we fallback to calling update n times instead
@@ -129,7 +129,7 @@ export default (
             params.ids.map(id =>
                 httpClient(`${apiUrl}/${resource}/${id}`, {
                     method: 'PUT',
-                    body: JSON.stringify(params.data),
+                    body: JSON.stringify({...params.data, id: id}),
                 })
             )
         ).then(responses => ({ data: responses.map(({ json }) => json.id) })),
