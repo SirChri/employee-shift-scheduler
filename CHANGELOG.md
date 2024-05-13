@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## Fixed
-- Entity updates (PUT) not working properly [https://github.com/SirChri/employee-shift-scheduler/issues/21](#21)
+- Entity updates (PUT) not working properly [#21](https://github.com/SirChri/employee-shift-scheduler/issues/21)
 
 ## [0.9] - 2024-04-24
 
