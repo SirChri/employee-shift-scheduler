@@ -8,6 +8,7 @@ export const UserList = () => (
             <TextField source="id" />
             <TextField source="username" />
             <TextField source="email" />
+            <TextField source="timezone" />
             <EditButton />
             <CloneButton />
             <PasswordUpdateBtn />

@@ -51,7 +51,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -141,13 +140,17 @@ public class UserController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN') or #id == authentication.principal.getId()")
-    public ResponseEntity<Map> update(@PathVariable Long id, @RequestBody User updated) {
+    public ResponseEntity<Map> update(@PathVariable Long id, @RequestBody User updated) {        
         User record = service.get(id);
+        String pass = record.getPassword();
+        
         if (!Objects.equals(updated.getId(), id)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "id mismatch");
         }
+        record.update(updated);
+        record.setPassword(pass); //ignore password update
 
-        return ResponseEntity.ok(secureMap(service.update(updated)));
+        return ResponseEntity.ok(secureMap(service.update(record)));
     }
 
     /**
@@ -164,6 +167,7 @@ public class UserController {
         user.setUsername(created.getUsername());
         user.setEmail(created.getEmail());
         user.setPassword(new BCryptPasswordEncoder().encode(created.getPassword())); // Securely hash the password
+        user.setTimezoneFk(created.getTimezone());
 
         Role role = roleRepo.findByName(ERole.valueOf(created.getRole()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "role not found"));

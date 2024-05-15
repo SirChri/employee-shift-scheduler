@@ -20,39 +20,38 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.util;
+package io.sirchri.ess.model.lookup;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Locale;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import lombok.Data;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-public class DateUtils {
-    public static String formatZDT(Locale locale, ZonedDateTime time) {
-        return time
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
-    }
-    public static String formatZDT(Locale locale, ZonedDateTime time, ZoneId timezone) {
-        return time.withZoneSameInstant(
-                        timezone
-                )     
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
+@Data
+@Entity
+@Table(name = "lkp_timezone")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+public class Timezone implements Serializable, GenericLookupEntity<Timezone> {
+    @Id
+    @Column(name = "code")
+    private String code;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "abbrev")
+    private String abbrev;
+
+    @PrePersist
+    @PreUpdate
+    private void beforeInsertOrUpdate() {        
+        description = String.format("%s (%s)", code, abbrev);
     }
 }

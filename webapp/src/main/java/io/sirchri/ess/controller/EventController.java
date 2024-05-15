@@ -25,11 +25,13 @@ package io.sirchri.ess.controller;
 import io.sirchri.ess.controller.dto.EventBetweenDatesDto;
 import io.sirchri.ess.model.Event;
 import io.sirchri.ess.repository.EventRepository;
+import io.sirchri.ess.security.services.CustomUserDetails;
 import static io.sirchri.ess.util.DateUtils.formatZDT;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,13 +45,12 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -66,8 +67,11 @@ public class EventController extends GenericController<Event> {
     }
 
     @PostMapping("/in")
-    public ResponseEntity<Map<String, Object>> getBetweenDates(@RequestBody EventBetweenDatesDto body) {
-        List<Map> records = repo.eventsInRange(body.getStart(), body.getEnd(), body.getGroups(), body.isDetailed());
+    public ResponseEntity<Map<String, Object>> getBetweenDates(@RequestBody EventBetweenDatesDto body, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        ZoneId timezone = ZoneId.of(userDetails.getTimezone());
+        
+        List<Map> records = repo.eventsInRange(body.getStart(), body.getEnd(), body.getGroups(), body.isDetailed(), timezone);
         
         return ResponseEntity.ok(Map.of(
                 "data", records,
@@ -84,12 +88,16 @@ public class EventController extends GenericController<Event> {
             @RequestParam(required = false) 
                   ZonedDateTime end,
             @RequestParam(required = false) 
-                  String employees) throws JRException, IOException {
+                  String employees,
+            Authentication authentication) throws JRException, IOException {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        ZoneId timezone = ZoneId.of(userDetails.getTimezone());
+        
         InputStream jasperStream = this.getClass().getResourceAsStream("/reports/EventList-"+locale+".jasper");
         
         Map<String,Object> params = new HashMap<>();
-        params.put("start", formatZDT(Locale.forLanguageTag(locale), start));
-        params.put("end", formatZDT(Locale.forLanguageTag(locale), end));
+        params.put("start", formatZDT(Locale.forLanguageTag(locale), start, timezone));
+        params.put("end", formatZDT(Locale.forLanguageTag(locale), end, timezone));
         
         List<Long> groups = null;
         if (employees != null)
@@ -97,7 +105,7 @@ public class EventController extends GenericController<Event> {
                     .stream().map(Long::parseLong)
                     .collect(Collectors.toList());
         
-        JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(repo.eventsInRangePrint(start,end,groups));
+        JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(repo.eventsInRangePrint(start,end,groups,Locale.forLanguageTag(locale),timezone));
         
         //JasperDesign jasperDesign = JRXmlLoader.load(reportFile);
         //JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);

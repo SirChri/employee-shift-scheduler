@@ -20,39 +20,35 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.util;
+package io.sirchri.ess.controller.lookup;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Locale;
+import io.sirchri.ess.model.lookup.GenericLookupEntity;
+import io.sirchri.ess.repository.lookup.GenericLookupRepository;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-public class DateUtils {
-    public static String formatZDT(Locale locale, ZonedDateTime time) {
-        return time
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
+public abstract class GenericLookupService<T extends GenericLookupEntity<T>> {
+
+    private final GenericLookupRepository<T> repository;
+
+    public GenericLookupService(GenericLookupRepository<T> repository) {
+        this.repository = repository;
     }
-    public static String formatZDT(Locale locale, ZonedDateTime time, ZoneId timezone) {
-        return time.withZoneSameInstant(
-                        timezone
-                )     
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
+
+    public List<T> getList()  {        
+        return repository.findAll();
+    }
+
+    public List<T> getListByIds(List<String> ids)  {
+        return repository.findAllById(ids);
+    }
+
+    public T get(String id){
+        return repository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "entity not found"
+                  )
+        );
     }
 }

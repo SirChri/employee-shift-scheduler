@@ -20,39 +20,21 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.util;
+package io.sirchri.ess.controller.lookup;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Locale;
+import io.sirchri.ess.model.lookup.EventType;
+import io.sirchri.ess.repository.lookup.EventTypeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.*;
 
-public class DateUtils {
-    public static String formatZDT(Locale locale, ZonedDateTime time) {
-        return time
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
+@RestController
+@RequestMapping("/api/lkp_eventtype")
+public class EventTypeController extends GenericLookupController<EventType> {
+    private static final Logger logger = LoggerFactory.getLogger(EventTypeController.class);
+    
+    public EventTypeController(EventTypeRepository repo) {
+        super(repo);
     }
-    public static String formatZDT(Locale locale, ZonedDateTime time, ZoneId timezone) {
-        return time.withZoneSameInstant(
-                        timezone
-                )     
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
-    }
+
 }

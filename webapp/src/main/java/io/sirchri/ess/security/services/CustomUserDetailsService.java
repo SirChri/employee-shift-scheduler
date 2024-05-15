@@ -24,18 +24,17 @@ package io.sirchri.ess.security.services;
 
 import io.sirchri.ess.model.User;
 import io.sirchri.ess.repository.UserRepository;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * CustomUserDetailsService is a service that implements the UserDetailsService interface.
@@ -74,6 +73,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .withUsername(user.getUsername())
                 .withEmail(user.getEmail())
                 .withPassword(user.getPassword())
+                .withTimezone(user.getTimezoneFk())
                 .withAuthorities(authorities)
                 .withAccountNonExpired(true)
                 .withAccountNonLocked(true)

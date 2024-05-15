@@ -20,39 +20,13 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.util;
+package io.sirchri.ess.repository.lookup;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Locale;
+import io.sirchri.ess.model.lookup.GenericLookupEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.NoRepositoryBean;
 
-public class DateUtils {
-    public static String formatZDT(Locale locale, ZonedDateTime time) {
-        return time
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
-    }
-    public static String formatZDT(Locale locale, ZonedDateTime time, ZoneId timezone) {
-        return time.withZoneSameInstant(
-                        timezone
-                )     
-                .format(
-                    DateTimeFormatter
-                    .ofLocalizedDateTime(
-                        FormatStyle.SHORT
-                    )
-                    .withLocale( 
-                        locale
-                    )
-                );
-    }
+@NoRepositoryBean
+public interface GenericLookupRepository<T extends GenericLookupEntity<T>> extends JpaRepository<T, String>, JpaSpecificationExecutor<T> {
 }

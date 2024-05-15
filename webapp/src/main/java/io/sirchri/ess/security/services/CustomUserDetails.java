@@ -21,18 +21,17 @@
  */
 
 package io.sirchri.ess.security.services;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-
 import java.util.Collection;
 import java.util.Set;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class CustomUserDetails implements UserDetails {
     private final Long id;
     private final String username;
     private final String password;
     private final String email;
+    private final String timezone;
     private final Set<GrantedAuthority> authorities;
     private final boolean accountNonExpired;
     private final boolean accountNonLocked;
@@ -45,6 +44,7 @@ public class CustomUserDetails implements UserDetails {
         this.username = builder.username;
         this.password = builder.password;
         this.email = builder.email;
+        this.timezone = builder.timezone;
         this.authorities = builder.authorities;
         this.accountNonExpired = builder.accountNonExpired;
         this.accountNonLocked = builder.accountNonLocked;
@@ -66,6 +66,10 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getUsername() {
         return username;
+    }
+
+    public String getTimezone() {
+        return timezone;
     }
 
     @Override
@@ -102,6 +106,7 @@ public class CustomUserDetails implements UserDetails {
         private String username;
         private String password;
         private String email;
+        private String timezone;
         private Set<GrantedAuthority> authorities;
         private boolean accountNonExpired;
         private boolean accountNonLocked;
@@ -127,6 +132,11 @@ public class CustomUserDetails implements UserDetails {
 
         public Builder withEmail(String email) {
             this.email = email;
+            return this;
+        }
+
+        public Builder withTimezone(String timezone) {
+            this.timezone = timezone;
             return this;
         }
 

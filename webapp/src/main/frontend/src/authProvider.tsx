@@ -16,6 +16,7 @@ export const authProvider: AuthProvider = {
             })
             .then(( auth ) => {
                 localStorage.setItem('roles', auth.roles);
+                localStorage.setItem('timezone', auth.timezone);
                 return Promise.resolve();
             });
     },

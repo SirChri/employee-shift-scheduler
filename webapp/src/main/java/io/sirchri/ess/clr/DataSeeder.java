@@ -63,6 +63,7 @@ public class DataSeeder implements CommandLineRunner {
                 adminUser.setEmail("admin@example.com");
                 adminUser.setPassword(new BCryptPasswordEncoder().encode("admin")); // Securely hash the password
                 adminUser.setRoles(new HashSet<>(Arrays.asList(admin)));
+                adminUser.setTimezoneFk("Europe/Rome");
                 // Add any additional admin user details
                 userRepository.save(adminUser);
             }

@@ -23,14 +23,16 @@
 package io.sirchri.ess.repository;
 
 import io.sirchri.ess.model.Event;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EventRepository extends  GenericRepository<Event> {
-    public List<Map> eventsInRange(ZonedDateTime start, ZonedDateTime end, List<Long> groups, boolean detailed);
+    public List<Map> eventsInRange(ZonedDateTime start, ZonedDateTime end, List<Long> groups, boolean detailed, ZoneId timezone);
     
-    public List<Map> eventsInRangePrint(ZonedDateTime start, ZonedDateTime end, List<Long> groups);
+    public List<Map> eventsInRangePrint(ZonedDateTime start, ZonedDateTime end, List<Long> groups, Locale locale, ZoneId timezone);
 }

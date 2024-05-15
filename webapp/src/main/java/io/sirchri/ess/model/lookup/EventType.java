@@ -36,7 +36,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Table(name = "lkp_event_type")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-public class EventType implements Serializable {
+public class EventType implements Serializable, GenericLookupEntity<EventType> {
     @Id
     @Column(name = "code")
     private String code;

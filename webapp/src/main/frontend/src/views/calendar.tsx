@@ -13,7 +13,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import { useEffect, useRef, useState } from 'react';
 import { Loading, useCreate, useDelete, useGetList, useLocaleState, useNotify, useTranslate, useUpdate } from 'react-admin';
 import Calendar from 'react-calendar';
@@ -110,11 +110,11 @@ export default function CalendarView() {
 		dataProvider.getTimelineData(params)
 			.then((res) => {
 				let fetchedEvents = res.data?.map((e: EventInput) => {
-					e.start = new Date(e.dtstart);
-					e.end = new Date(e.dtend);
+					e.start = e.dtstart;
+					e.end = e.dtend;
 					e.allDay = e.all_day;
 					e.textColor = textColorOnHEXBg(e.color);
-					e.original_start_date = new Date(e.dtstart).toISOString()
+					e.original_start_date = new Date(e.dtstart).toISOString();
 					e.title = e.type == "JOB" ? e.title : e.type //TODO: translate this enum
 					
 					return e;
@@ -491,7 +491,7 @@ export default function CalendarView() {
 				<Box width={isSmall ? 'auto' : 'calc(100% - 18em)'} height="85vh">
 					<FullCalendar
 						ref={calendarRef}
-						//timeZone={'UTC'}
+						timeZone={localStorage.getItem('timezone') || undefined} 
 						locale={locale}
 						height="100%"
 						selectable={true}
@@ -718,8 +718,8 @@ export default function CalendarView() {
 									<QueryBuilderRoundedIcon />
 								</ListItemIcon>
 								<ListItemText
-									primary={new Date(popover.record?.dtstart).toLocaleString()}
-									secondary={new Date(popover.record?.dtend).toLocaleString()} />
+									primary={new Date(popover.record?.dtstart).toLocaleString(locale, { timeZone: localStorage.getItem('timezone') || "UTC" })}
+									secondary={new Date(popover.record?.dtend).toLocaleString(locale, { timeZone: localStorage.getItem('timezone') || "UTC" })} />
 							</ListItem>
 							<ListItem style={{
 								display: popover.record?._rrule == null ? "none" : "default"

@@ -22,6 +22,9 @@
 
 package io.sirchri.ess.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.sirchri.ess.model.lookup.Timezone;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -56,6 +59,15 @@ public class User implements Serializable, GenericEntity<User> {
             nullable = false,
             unique = true)
     private String email; 
+    
+    @JsonIgnore    
+    @JoinColumn(name = "timezone", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Timezone.class)
+    private Timezone timezone;
+
+    @JsonProperty("timezone")
+    @Column(name = "timezone")
+    private String timezoneFk;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(  name = "user_roles", 
@@ -78,10 +90,23 @@ public class User implements Serializable, GenericEntity<User> {
 
     @Override
     public void update(User source) {
-      this.username = source.getUsername();
-      this.email = source.getEmail();
-      this.password = source.getPassword(); 
-      this.roles = source.getRoles();
+      if (source.getUsername() != null)
+        this.username = source.getUsername();
+      
+      if (source.getEmail() != null)
+        this.email = source.getEmail();
+      
+      if (source.getTimezone() != null)
+        this.timezone = source.getTimezone();
+      
+      if (source.getTimezoneFk() != null)
+        this.timezoneFk = source.getTimezoneFk();
+      
+      if (source.getPassword() != null)
+        this.password = source.getPassword(); 
+      
+      if (source.getRoles() != null)
+        this.roles = source.getRoles();
     }
 
     @Override

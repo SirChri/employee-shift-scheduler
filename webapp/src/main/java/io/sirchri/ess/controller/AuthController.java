@@ -23,6 +23,7 @@
 package io.sirchri.ess.controller;
 
 import io.sirchri.ess.controller.dto.LoginDto;
+import io.sirchri.ess.security.services.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -41,7 +42,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,20 +67,33 @@ public class AuthController {
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
+        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+        
         Map<String, Object> out = new HashMap();
         out.put("username", loginDto.getUsername());
         out.put("authenticated", authentication.isAuthenticated());
         out.put("roles", (List<String>) authentication.getAuthorities().stream().map(a -> a.getAuthority()).collect(Collectors.toList()));
+        out.put("timezone", principal.getTimezone());
         
         return ResponseEntity.ok(out);
     }
     
     @RequestMapping(value = "/session", method = RequestMethod.GET)
-    public ResponseEntity<String> session(HttpServletRequest request, HttpServletResponse response) {
-        // Get the user's session and invalidate it
-        HttpSession session = request.getSession(false);
+    public ResponseEntity<Map<String, Object>> session(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
-        return ResponseEntity.ok(session.getId());
+        Map<String, Object> userData = new HashMap();
+        userData.put("email", userDetails.getEmail());
+        userData.put("timezone", userDetails.getTimezone());
+        userData.put("username", userDetails.getUsername()); 
+        userData.put("authorities", userDetails.getAuthorities());  
+        
+        
+        Map<String, Object> out = new HashMap();
+        out.put("session", request.getSession(false).getId());
+        out.put("user", userData);
+        
+        return ResponseEntity.ok(out);
     }
     
     

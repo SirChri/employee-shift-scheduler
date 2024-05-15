@@ -32,6 +32,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -77,18 +78,31 @@ public class EventRepositoryImpl {
      * @param end The end date and time of the range.
      * @param groups The list of group IDs to filter events.
      * @param detailed Flag to indicate if the events should be detailed.
+     * @param timezone
      * @return A list of mapped events in the specified range.
      */
-    public List<Map> eventsInRange(ZonedDateTime start, ZonedDateTime end, List<Long> groups, boolean detailed) {
+    public List<Map> eventsInRange(ZonedDateTime start, ZonedDateTime end, List<Long> groups, boolean detailed, ZoneId timezone) {
         // Find all events within the date range and groups
         List<Event> events = executor.findAll(betweenDatesAndGroups(start, end, groups));
         
         // Map events to a list of records
-        List<Map> records = events.stream().map(e -> this.entityMapped(e)).collect(Collectors.toList());
+        List<Map> records = events.stream().map(e -> {
+            Map m = this.entityMapped(e);
+            m.put("dtstart", e.getDtStart().withZoneSameInstant(timezone));
+            m.put("dtend", e.getDtEnd().withZoneSameInstant(timezone));
+            
+            return m;
+        }).collect(Collectors.toList());
 
         // If detailed is true, expand all recurring events into child events
         if (detailed) {
-            records = events.stream().filter(e -> !e.getRecurring()).map(e -> this.entityMapped(e)).collect(Collectors.toList());
+            records = events.stream().filter(e -> !e.getRecurring()).map(e -> {
+                Map m = this.entityMapped(e);
+                m.put("dtstart", e.getDtStart().withZoneSameInstant(timezone));
+                m.put("dtend", e.getDtEnd().withZoneSameInstant(timezone));
+
+                return m;
+            }).collect(Collectors.toList());
 
             for (Event e : events.stream().filter(Event::getRecurring).collect(Collectors.toList())) {
                 VEvent ev = eventToVevent(e);
@@ -102,8 +116,8 @@ public class EventRepositoryImpl {
                 for (Period recurringPeriod : recurrenceSet) {
                     Event recurringEvent = new Event();
                     recurringEvent.update(e);
-                    recurringEvent.setDtStart((ZonedDateTime) recurringPeriod.getStart());
-                    recurringEvent.setDtEnd((ZonedDateTime) recurringPeriod.getEnd());
+                    recurringEvent.setDtStart(((ZonedDateTime) recurringPeriod.getStart()).withZoneSameInstant(timezone));
+                    recurringEvent.setDtEnd(((ZonedDateTime) recurringPeriod.getEnd()).withZoneSameInstant(timezone));
                     recurringEvent.setParent(e);
 
                     // Map the recurring event and assign a unique ID
@@ -124,11 +138,13 @@ public class EventRepositoryImpl {
      * @param start The start date and time of the range.
      * @param end The end date and time of the range.
      * @param groups The list of group IDs to filter events.
+     * @param locale
+     * @param timezone
      * @return A list of mapped events for printing.
      */
-    public List<Map> eventsInRangePrint(ZonedDateTime start, ZonedDateTime end, List<Long> groups) {
+    public List<Map> eventsInRangePrint(ZonedDateTime start, ZonedDateTime end, List<Long> groups, Locale locale, ZoneId timezone) {
         // Retrieve detailed events in range and convert to printable format
-        List<Map> records = eventsInRange(start, end, groups, true)
+        List<Map> records = eventsInRange(start, end, groups, true, timezone)
                 .stream()
                 .map((event) -> {
                     // Parse start and end times
@@ -162,8 +178,8 @@ public class EventRepositoryImpl {
                     }
 
                     // Format start and end times
-                    event.put("dtstart", formatZDT(Locale.ITALY, dtstart));
-                    event.put("dtend", formatZDT(Locale.ITALY, dtend));
+                    event.put("dtstart", formatZDT(locale, dtstart));
+                    event.put("dtend", formatZDT(locale, dtend));
                     
                     // Usefull for sorting
                     event.put("dtstart_iso", event.get("dtstart"));
