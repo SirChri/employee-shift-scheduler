@@ -88,7 +88,7 @@ const RruleInput: React.FC<RruleInputProps> = ({ source }) => (
                               {"Data:"}
                             </Grid>
                             <Grid item xs={8}>
-                              <DateInput fullWidth disabled={formData.until_type !== 1} source={"until_date"} validate={formData.until_type === 1 ? required() : undefined}  />
+                               {formData.until_type == 1 ? <DateInput fullWidth source={"until_date"} validate={required()}  /> : "" }
                             </Grid>
                           </Grid>
                           )
@@ -99,7 +99,7 @@ const RruleInput: React.FC<RruleInputProps> = ({ source }) => (
                               {"Dopo:"}
                             </Grid>
                             <Grid item xs={8}>
-                              <NumberInput fullWidth disabled={formData.until_type !== 2} source={"until_occurrences"} validate={formData.until_type === 2 ? required() : undefined}  defaultValue={1} />
+                              {formData.until_type == 2 ? <NumberInput fullWidth source={"until_occurrences"} validate={required()}  defaultValue={1} /> : ""}
                             </Grid>
                           </Grid>
                         )
