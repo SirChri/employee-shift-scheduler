@@ -1,7 +1,8 @@
-import { Grid } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
 import { BooleanInput, DateInput, FormDataConsumer, NumberInput, RadioButtonGroupInput, SelectArrayInput, SelectInput, required } from 'react-admin';
+import { ToggleButtonInput } from './ToggleButtonInput';
 
 interface RruleInputProps {
   source: string;
@@ -24,109 +25,165 @@ interface RruleInputProps {
  */
 const RruleInput: React.FC<RruleInputProps> = ({ source }) => (
   <FormDataConsumer>
-    {({ formData, scopedFormData, getSource }) => {
+    {({ formData, scopedFormData }) => {
       return (
         <>
-        <Grid container spacing={2}>
-            <Grid item xs={4}>
-              <BooleanInput source={"recurring"} label={formData.recurring ? "Ripeti ogni" : "Ripeti"} />
-            </Grid>
-            {formData.recurring && 
-              <>
-              <Grid item xs={4}>
-                  <NumberInput source={"interval"} validate={required()} defaultValue={1} label="Intervallo" />
-              </Grid>
-              <Grid item xs={4}>
-                <SelectInput
-                  source={`frequency`}
-                  style={{
-                    marginTop: "0"
+          <Grid container spacing={2}>
+            <Grid size={12}>
+              <Box display="flex" alignItems="center" sx={{
+                marginBottom: 2
+              }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    marginRight: 2,
+                    lineHeight: '2rem', // Match the height of the BooleanInput
+                    display: 'flex',
+                    alignItems: 'center', // Vertically center the text
                   }}
-                  validate={required()}
-                  label="Frequenza"
-                  defaultValue={2}
-                  choices={[
-                    { id: 3, name: 'Days' },
-                    { id: 2, name: 'Weeks' },
-                    { id: 1, name: 'Months' },
-                    { id: 0, name: 'Years' },
-                  ]}
+                >
+                  Recurring event:
+                </Typography>
+                <BooleanInput
+                  source="recurring"
+                  label={false} // Remove the label to avoid extra space
+                  sx={{
+                    display: 'flex',
+                    height: '2rem', // Match the height of the Typography
+                  }}
                 />
-              </Grid>
-              <Grid item xs={12}>
-                {formData.freq === 2 ? <SelectArrayInput
-                  fullWidth
-                  label="Si ripete il"
-                  source={`byweekday`}
-                  defaultValue={() => {
-                    return formData.dtstart ?  (new Date(formData.dtstart)).getUTCDay() % 7 : null
-                  }}
-                  choices={[
-                    { id: 0, name: 'Domenica' },
-                    { id: 1, name: 'Lunedì' },
-                    { id: 2, name: 'Martedì' },
-                    { id: 3, name: 'Mercoledì' },
-                    { id: 4, name: 'Giovedì' },
-                    { id: 5, name: 'Venerdì' },
-                    { id: 6, name: 'Sabato' },
-                  ]}
-                /> : null }
-                <RadioButtonGroupInput source="until_type" label={"Fine:"} sx={{
-                    '&': {width: "100%"},
-                    '& .MuiFormControlLabel-label': {width: "100%"}
-                  }} row={false} defaultValue={0}
-                  choices={[
-                      { id: 0},
-                      { id: 1},
-                      { id: 2},
-                  ]} optionText={(choice) => {
-                    switch(choice.id) {
-                      case 1: //date
+              </Box>
+            </Grid>
+
+            {formData.recurring &&
+              <>
+                <Grid size={2}>
+                  {/* Label */}
+                  <Typography variant="body1" sx={{
+                    lineHeight: '1.5rem', // Match the height of the BooleanInput
+                  }}>
+                    Every:
+                  </Typography>
+
+                </Grid>
+                <Grid size={5}>
+                  {/* Number Input */}
+                  <NumberInput
+                    source="interval"
+                    validate={required()}
+                    defaultValue={1}
+                    fullWidth
+                    sx={{
+                      margin: '8px 0'
+                    }}
+                    label="Intervallo"
+                  />
+                </Grid>
+
+                <Grid size={5}>
+                  {/* Frequency Select */}
+                  <SelectInput
+                    source="frequency"
+                    fullWidth
+                    size='small'
+                    validate={required()}
+                    label="Frequenza"
+                    defaultValue={2}
+                    choices={[
+                      { id: 3, name: 'Days' },
+                      { id: 2, name: 'Weeks' },
+                      { id: 1, name: 'Months' },
+                      { id: 0, name: 'Years' },
+                    ]}
+                  />
+                </Grid>
+                <Grid size={2}>
+                  {/* Label */}
+                  <Typography variant="body1" sx={{
+                    height: '40px', // Match the height of the BooleanInput
+                  }}>
+                    Stop after:
+                  </Typography>
+
+                </Grid>
+                <Grid size={5}>
+                  <ToggleButtonInput
+                    source="until_type"
+                    defaultValue={'0'}
+                    choices={[
+                      { id: '0', name: 'Never' },
+                      { id: '1', name: 'Date' },
+                      { id: '2', name: '#' },
+                    ]}
+                  />
+                </Grid>
+                <Grid size={5}>
+                  {(() => {
+                    switch (formData.until_type) {
+                      case '1': // Date
                         return (
-                          <Grid container spacing={2}  alignItems="center" >
-                            <Grid item xs={4}>
-                              {"Data:"}
-                            </Grid>
-                            <Grid item xs={8}>
-                               {formData.until_type == 1 ? <DateInput fullWidth source={"until_date"} validate={required()}  /> : "" }
-                            </Grid>
-                          </Grid>
-                          )
-                      case 2: //occurrences
+                          <DateInput
+                            fullWidth
+                            sx={{ margin: '5px 0' }}
+                            source="until_date"
+                            validate={required()}
+                          />
+                        );
+                      case '2': // Number of occurrences
                         return (
-                          <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={4}>
-                              {"Dopo:"}
-                            </Grid>
-                            <Grid item xs={8}>
-                              {formData.until_type == 2 ? <NumberInput fullWidth source={"until_occurrences"} validate={required()}  defaultValue={1} /> : ""}
-                            </Grid>
-                          </Grid>
-                        )
+                          <NumberInput
+                            fullWidth
+                            sx={{ margin: '5px 0' }}
+                            source="until_occurrences"
+                            validate={required()}
+                            defaultValue={1}
+                          />
+                        );
                       default:
                         return (
-                          <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12}>
-                              {"Mai:"}
-                            </Grid>
-                          </Grid>
-                        )
+                          <DateInput
+                            disabled
+                            fullWidth
+                            sx={{ margin: '5px 0' }}
+                            source="until_date"
+                            validate={required()}
+                          />
+                        );
                     }
-                  }} />
+                  })()}
                 </Grid>
-                </>
-              }
-            </Grid>
-          </>
-        );
-      }}
-    </FormDataConsumer>
-  );
-  
-  RruleInput.propTypes = {
-    source: PropTypes.string.isRequired,
-  };
-  
-  export default RruleInput;
 
-  
+                {/*<Grid size={12}>
+                  formData.frequency === 2 ? <SelectArrayInput
+                    fullWidth
+                    label="Si ripete il"
+                    source={`byweekday`}
+                    defaultValue={() => {
+                      return formData.dtstart ? (new Date(formData.dtstart)).getUTCDay() % 7 : null
+                    }}
+                    choices={[
+                      { id: 0, name: 'Domenica' },
+                      { id: 1, name: 'Lunedì' },
+                      { id: 2, name: 'Martedì' },
+                      { id: 3, name: 'Mercoledì' },
+                      { id: 4, name: 'Giovedì' },
+                      { id: 5, name: 'Venerdì' },
+                      { id: 6, name: 'Sabato' },
+                    ]}
+                  /> : <></> //TODO: handle days freq
+                </Grid>*/}
+              </>
+            }
+          </Grid>
+        </>
+      );
+    }}
+  </FormDataConsumer>
+);
+
+RruleInput.propTypes = {
+  source: PropTypes.string.isRequired,
+};
+
+export default RruleInput;
+

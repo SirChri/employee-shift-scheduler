@@ -1,5 +1,5 @@
 FROM tomcat:jre21
-ADD https://github.com/SirChri/employee-shift-scheduler/releases/latest/download/ess-v0.9.2.war /tmp/ess.war
+ADD ./ess.war /tmp/ess.war
 RUN apt-get update && apt-get install unzip
 RUN unzip /tmp/ess.war -d /usr/local/tomcat/webapps/ess
 

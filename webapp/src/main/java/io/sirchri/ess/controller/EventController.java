@@ -67,7 +67,7 @@ public class EventController extends GenericController<Event> {
 
     @PostMapping("/in")
     public ResponseEntity<Map<String, Object>> getBetweenDates(@RequestBody EventBetweenDatesDto body) {
-        List<Map> records = repo.eventsInRange(body.getStart(), body.getEnd(), body.getGroups(), body.isDetailed());
+        List<Map> records = repo.eventsInRange(body.getStart(), body.getEnd(), body.getGroups(), body.isDetailed(), body.getTimezone());
         
         return ResponseEntity.ok(Map.of(
                 "data", records,
@@ -81,10 +81,12 @@ public class EventController extends GenericController<Event> {
                   String locale,
             @RequestParam(required = false) 
                   ZonedDateTime start,
-            @RequestParam(required = false) 
+            @RequestParam(required = true) 
                   ZonedDateTime end,
-            @RequestParam(required = false) 
-                  String employees) throws JRException, IOException {
+            @RequestParam(required = true) 
+                  String employees,
+            @RequestParam(required = true) 
+                  String timezone) throws JRException, IOException {
         InputStream jasperStream = this.getClass().getResourceAsStream("/reports/EventList-"+locale+".jasper");
         
         Map<String,Object> params = new HashMap<>();
@@ -97,7 +99,7 @@ public class EventController extends GenericController<Event> {
                     .stream().map(Long::parseLong)
                     .collect(Collectors.toList());
         
-        JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(repo.eventsInRangePrint(start,end,groups));
+        JRBeanCollectionDataSource datasource = new JRBeanCollectionDataSource(repo.eventsInRangePrint(start,end,groups, timezone));
         
         //JasperDesign jasperDesign = JRXmlLoader.load(reportFile);
         //JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);

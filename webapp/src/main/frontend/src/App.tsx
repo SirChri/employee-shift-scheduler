@@ -11,12 +11,13 @@ import Layout  from './Layout';
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
 
-import EmployeeSummaryList from './views/eventsummary';
-import CalendarView from './views/calendar';
+import EmployeeSummaryList from './views/EventSummary';
+import CalendarView from './views/Calendar';
 
 import employees from './employees';
 import customers from './customers';
 import users from './users';
+import UserPreferences from './users/UserPreferences';
 
 const i18nProvider = polyglotI18nProvider(locale => {
     if (locale === 'it') {
@@ -41,6 +42,7 @@ const App = () => (
       <CustomRoutes>
             <Route path="/calendar" element={<CalendarView />}/>
             <Route path="/summary" element={<EmployeeSummaryList />}/>
+            <Route path="/user/preferences" element={<UserPreferences />} />
         </CustomRoutes>
         
   </Admin>

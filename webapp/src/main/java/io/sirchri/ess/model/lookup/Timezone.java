@@ -20,23 +20,37 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.controller.dto;
+package io.sirchri.ess.model.lookup;
 
-import java.time.ZonedDateTime;
-import java.util.List;
+import io.sirchri.ess.model.Event;
+import io.sirchri.ess.model.GenericEntity;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.io.Serializable;
 import lombok.Data;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-/**
- *
- * @author christian
- */
 @Data
-public class EventBetweenDatesDto {
-    private ZonedDateTime start;
-    private ZonedDateTime end;
-    private List<Long> groups;        
-    private boolean detailed = false;
-    private String timezone;
+@Entity
+@Table(name = "lkp_timezone")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+public class Timezone implements Serializable, GenericLkpEntity<Timezone> {
+    @Id
+    @Column(name = "code")
+    private String code;
 
-    // getters and setters omitted
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "offset_utc")
+    private String offsetUtc;
+
+    @Override
+    public String getId() {
+        return code;
+    }
 }

@@ -65,7 +65,7 @@ public class EventUtils {
             builder.dayList(e.getByweekday().stream().map(weekDays::get).collect(Collectors.toList()));
         
         if (e.getUntilDate() != null && e.getUntilType() == 1)
-            builder.until(Instant.ofEpochMilli(e.getUntilDate().getTime()).atZone(ZoneId.of(e.getTimezone())));
+            builder.until(Instant.ofEpochMilli(e.getUntilDate().getTime()).atZone(ZoneId.of("UTC")));
         
         if (e.getUntilOccurrences() != null && e.getUntilType() == 2)
             builder.count(e.getUntilOccurrences());
@@ -75,20 +75,20 @@ public class EventUtils {
     
     public static VEvent eventToVevent(Event e) {
         VEvent vevent = new VEvent(
-           e.getDtStart().withZoneSameInstant(ZoneId.of(e.getTimezone())), 
-            e.getDtEnd().withZoneSameInstant(ZoneId.of(e.getTimezone())), //prende utc e ci applica il timezone (stesso istante di tempo)
+           e.getDtStart().withZoneSameInstant(ZoneId.of(e.getDtStartTzFk())), 
+            e.getDtEnd().withZoneSameInstant(ZoneId.of(e.getDtEndTzFk())), //prende utc e ci applica il timezone (stesso istante di tempo)
         e.getSummary())
             .withProperty(new Uid(e.getUid()))
             .withProperty(new Sequence(e.getSequence()))
             .getFluentTarget();
         
         if (e.getRecurrenceId() != null) {
-            vevent.add(new RecurrenceId(e.getRecurrenceId().withZoneSameInstant(ZoneId.of(e.getTimezone()))));
+            vevent.add(new RecurrenceId(e.getRecurrenceId().withZoneSameInstant(ZoneId.of(e.getDtStartTzFk()))));
         }
         
         if (e.getExDates() != null) {
             vevent.add(new ExDate(new DateList<>(Arrays.asList(e.getExDates().split(",")).stream().map(d->
-                    ZonedDateTime.parse(d).withZoneSameInstant(ZoneId.of(e.getTimezone()))
+                    ZonedDateTime.parse(d).withZoneSameInstant(ZoneId.of(e.getDtStartTzFk()))
             ).collect(Collectors.toList()))));
         }
             

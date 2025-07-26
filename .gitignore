@@ -9,6 +9,7 @@ node_modules
 **/node_modules
 
 webapp/target
+webapp/TODO.md
 
 webapp/src/main/frontend/build
 webapp/src/main/frontend/package-lock.json

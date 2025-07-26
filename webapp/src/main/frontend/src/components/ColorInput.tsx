@@ -21,7 +21,7 @@ export const ColorField = ({ source }: ColorFieldProps) => {
         style={{
           width: '20px',
           height: '20px',
-          background: record[source],
+          background: record ? record[source] : null,
           marginRight: '5px',
         }}
       />

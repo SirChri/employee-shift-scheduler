@@ -32,7 +32,9 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -77,18 +79,19 @@ public class EventRepositoryImpl {
      * @param end The end date and time of the range.
      * @param groups The list of group IDs to filter events.
      * @param detailed Flag to indicate if the events should be detailed.
+     * @param timezone
      * @return A list of mapped events in the specified range.
      */
-    public List<Map> eventsInRange(ZonedDateTime start, ZonedDateTime end, List<Long> groups, boolean detailed) {
+    public List<Map> eventsInRange(ZonedDateTime start, ZonedDateTime end, List<Long> groups, boolean detailed, String timezone) {
         // Find all events within the date range and groups
         List<Event> events = executor.findAll(betweenDatesAndGroups(start, end, groups));
         
         // Map events to a list of records
-        List<Map> records = events.stream().map(e -> this.entityMapped(e)).collect(Collectors.toList());
+        List<Map> records = events.stream().map(e -> this.entityMapped(e, timezone)).collect(Collectors.toList());
 
         // If detailed is true, expand all recurring events into child events
         if (detailed) {
-            records = events.stream().filter(e -> !e.getRecurring()).map(e -> this.entityMapped(e)).collect(Collectors.toList());
+            records = events.stream().filter(e -> !e.getRecurring()).map(e -> this.entityMapped(e, timezone)).collect(Collectors.toList());
 
             for (Event e : events.stream().filter(Event::getRecurring).collect(Collectors.toList())) {
                 VEvent ev = eventToVevent(e);
@@ -107,7 +110,7 @@ public class EventRepositoryImpl {
                     recurringEvent.setParent(e);
 
                     // Map the recurring event and assign a unique ID
-                    Map record = entityMapped(recurringEvent);
+                    Map record = entityMapped(recurringEvent, timezone);
                     record.put("id", e.getId() + "_" + index++);
 
                     records.add(record);
@@ -126,9 +129,9 @@ public class EventRepositoryImpl {
      * @param groups The list of group IDs to filter events.
      * @return A list of mapped events for printing.
      */
-    public List<Map> eventsInRangePrint(ZonedDateTime start, ZonedDateTime end, List<Long> groups) {
+    public List<Map> eventsInRangePrint(ZonedDateTime start, ZonedDateTime end, List<Long> groups, String timezone) {
         // Retrieve detailed events in range and convert to printable format
-        List<Map> records = eventsInRange(start, end, groups, true)
+        List<Map> records = eventsInRange(start, end, groups, true, timezone)
                 .stream()
                 .map((event) -> {
                     // Parse start and end times
@@ -190,7 +193,7 @@ public class EventRepositoryImpl {
      * @param e The Event entity to map.
      * @return A map of key-value pairs representing the event.
      */
-    private Map<String, Object> entityMapped(Event e) {
+    private Map<String, Object> entityMapped(Event e, String timezone) {
         // Map the event entity to a map using a utility function
         Map record = entityToMap(e);
         Employee employee = e.getEmployee();
@@ -201,9 +204,17 @@ public class EventRepositoryImpl {
             record.put("employee_fullname", employee.getFullname());
         }
 
+        record.put("dtstart", getFormattedDate(e.getDtStart(), timezone));
+        record.put("dtend", getFormattedDate(e.getDtEnd(), timezone));
+
         // Add customer name as title if available
         record.put("title", e.getCustomer() != null ? e.getCustomer().getName() : null);
 
         return record;
+    }
+
+    private String getFormattedDate(ZonedDateTime date, String timezone) {
+        // Format the date to a string in the specified timezone
+        return date.withZoneSameInstant(ZoneId.of(timezone)).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }

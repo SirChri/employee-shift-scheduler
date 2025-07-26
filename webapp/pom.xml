@@ -20,8 +20,8 @@
     <properties>
         <java.version>17</java.version>
         <frontend-src-dir>${project.basedir}/src/main/frontend</frontend-src-dir>
-        <node.version>v16.14.2</node.version>
-        <npm.version>9.8.0</npm.version>
+        <node.version>v24.4.1</node.version>
+        <npm.version>11.4.2</npm.version>
         <frontend-maven-plugin.version>1.14.2</frontend-maven-plugin.version>
     </properties>
     <dependencies>
@@ -33,6 +33,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-tomcat</artifactId>
+        <scope>provided</scope>
+    </dependency>
         <dependency>
             <groupId>org.springframework.session</groupId>
             <artifactId>spring-session-jdbc</artifactId>
@@ -45,6 +50,9 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+    <scope>provided</scope>
+            <version>1.18.38</version>
+    
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

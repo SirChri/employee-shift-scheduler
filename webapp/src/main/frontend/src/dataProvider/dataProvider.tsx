@@ -39,15 +39,15 @@ export default (
     countHeader: string = 'Content-Range'
 ): DataProvider => ({
     getList: (resource, params) => {
-        const { page, perPage } = params.pagination;
-        const { field, order } = params.sort;
+        const { page, perPage } = { ...params.pagination };
+        const { field, order } = { ...params.sort };
         
         const filter = params.filter;
         
         let query:any = {
             sortBy: field,
             sortDir: order,
-            page: (page - 1),
+            page: ((page || 0) - 1),
             limit: perPage
         };
 

@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.sirchri.ess.model.lookup.EventType;
+import io.sirchri.ess.model.lookup.Timezone;
 import static io.sirchri.ess.util.EventUtils.eventToRRuleString;
 import static io.sirchri.ess.util.EventUtils.eventToVevent;
 import jakarta.persistence.*;
@@ -70,18 +71,32 @@ public class Event implements Serializable, GenericEntity<Event> {
     @JsonProperty("dtstart")
     @Column(name = "dtstart", nullable = false)
     private ZonedDateTime dtStart;
+    
+    @JsonIgnore    
+    @JoinColumn(name = "dtstart_tz", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Timezone.class)
+    private Timezone dtStartTz;
+
+    @JsonProperty("dtstart_tz")
+    @Column(name = "dtstart_tz")
+    private String dtStartTzFk;
 
     @JsonProperty("dtend")
     @Column(name = "dtend", nullable = false)
     private ZonedDateTime dtEnd;
+    
+    @JsonIgnore 
+    @JoinColumn(name = "dtend_tz", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = Timezone.class)
+    private Timezone dtEndTz;
+
+    @JsonProperty("dtend_tz")
+    @Column(name = "dtend_tz")
+    private String dtEndTzFk;
 
     @JsonProperty("ex_dates")
     @Column(name = "ex_dates", columnDefinition="text")
     private String exDates;
-    
-    @JsonProperty("timezone")
-    @Column(name = "timezone")
-    private String timezone;
     
     @Column(name = "uid")
     private String uid;
@@ -224,9 +239,12 @@ public class Event implements Serializable, GenericEntity<Event> {
     public void update(Event source) {
         this.title = source.getTitle();
         this.summary = source.getSummary();
-        this.timezone = source.getTimezone();
         this.dtStamp = source.getDtStamp();
         this.dtStart = source.getDtStart();
+        this.dtStartTz = source.getDtStartTz();
+        this.dtEndTz = source.getDtEndTz();
+        this.dtStartTzFk = source.getDtStartTzFk();
+        this.dtEndTzFk = source.getDtEndTzFk();
         this.dtEnd = source.getDtEnd();
         this.allDay = source.getAllDay();
         this.customerFk = source.getCustomerFk();

@@ -24,7 +24,9 @@ const customItalianMessages: TranslationMessages = {
           remove: 'Rimuovi',
           save: 'Salva',
           search: 'Ricerca',
+          search_columns: 'Cerca nelle colonne',
             select_all: 'Select all',
+            select_all_button: 'Select all',
             select_row: 'Select this row',
           show: 'Mostra',
           sort: 'Ordina',
@@ -52,6 +54,8 @@ const customItalianMessages: TranslationMessages = {
           dashboard: 'Cruscotto',
           edit: '%{name} %{id}',
           error: 'Qualcosa non ha funzionato',
+          access_denied: 'Access denied',
+          authentication_error: 'Authentication error',
           list: '%{name}',
           loading: 'Caricamento in corso',
           not_found: 'Non trovato',
@@ -86,6 +90,10 @@ const customItalianMessages: TranslationMessages = {
         message: {
           about: 'Informazioni',
           are_you_sure: 'Sei sicuro ?',
+          access_denied: 'Access denied',
+          authentication_error: 'Authentication error',
+          select_all_limit_reached: 'Select all limit reached',
+          placeholder_data_warning: 'Placeholder data warning',
             auth_error:
                 'A error occurred while validating the authentication token.',
           bulk_delete_content:
@@ -113,6 +121,8 @@ const customItalianMessages: TranslationMessages = {
         },
         navigation: {
           no_results: 'Nessun risultato trovato',
+          no_filtered_results: "No filtered results",
+          clear_filters: "Clear filters",
           no_more_results:
             'La pagina numero %{page} è fuori dell\'intervallo. Prova la pagina precedente.',
           page_out_of_boundaries: 'Il numero di pagina %{page} è fuori dei limiti',
@@ -141,6 +151,7 @@ const customItalianMessages: TranslationMessages = {
           username: 'Nome utente',
           password: 'Password',
           sign_in: 'Login',
+          email: "Email",
           sign_in_error: 'Autenticazione fallita, riprovare.',
           logout: 'Disconnessione'
         },
@@ -261,6 +272,14 @@ const customItalianMessages: TranslationMessages = {
           updated: "Password modificata con successo!",
           updated_error: "C'è stato un'errore nell'aggiornare la password.",
           field_label: "Nuova password"
+        },
+        preferences: {
+          title: "Preferenze Utente",
+          timezone: "Fuso Orario",
+          language: "Lingua",
+          success_update: "Preferenze aggiornate con successo!",
+          error_update: "Errore durante l'aggiornamento delle preferenze.",
+          error_fetch: "Errore durante il recupero delle preferenze.",
         }
       },
       summary: {

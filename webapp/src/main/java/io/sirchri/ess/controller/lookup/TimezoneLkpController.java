@@ -20,23 +20,22 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.controller.dto;
+package io.sirchri.ess.controller.lookup;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import lombok.Data;
+import io.sirchri.ess.model.lookup.Timezone;
+import io.sirchri.ess.repository.lookup.TimezoneRepository;
+import org.springframework.web.bind.annotation.*;
 
-/**
- *
- * @author christian
- */
-@Data
-public class EventBetweenDatesDto {
-    private ZonedDateTime start;
-    private ZonedDateTime end;
-    private List<Long> groups;        
-    private boolean detailed = false;
-    private String timezone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    // getters and setters omitted
+@RestController
+@RequestMapping("/api/timezone")
+public class TimezoneLkpController extends GenericLkpController<Timezone> {
+    private static final Logger logger = LoggerFactory.getLogger(TimezoneLkpController.class);
+
+    public TimezoneLkpController(TimezoneRepository repo) {
+        super(repo);
+    }
+
 }

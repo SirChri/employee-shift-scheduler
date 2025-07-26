@@ -1,8 +1,10 @@
 import React from 'react';
-import { Tabs, Tab, Toolbar, AppBar, Box, Typography } from '@mui/material';
-import { Link, matchPath, useLocation } from 'react-router-dom';
-import { UserMenu, Logout, LoadingIndicator, useTranslate, usePermissions } from 'react-admin';
+import { Tabs, Tab, Toolbar, AppBar, Box, Typography, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
+import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom';
+import { UserMenu, Logout, LoadingIndicator, useTranslate, usePermissions, LogoutClasses } from 'react-admin';
 import EventIcon from '@mui/icons-material/Event';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -13,6 +15,7 @@ const Header = () => {
     const location = useLocation();
     const translate = useTranslate();
     const { permissions } = usePermissions();
+    const navigate = useNavigate();
 
     let currentPath = '/';
     if (!!matchPath('/customer/*', location.pathname)) {
@@ -110,12 +113,32 @@ const Header = () => {
                         />
                         <UserMenu>
                             <Logout />
-                            { permissions?.includes("ROLE_ADMIN") && <Tab
-                                label={'Users'}
-                                component={Link}
-                                to="/user"
-                                value="/user"
-                            /> }
+                            { permissions?.includes("ROLE_ADMIN") && <MenuItem
+                                onClick={() => {
+                                    navigate('/user')
+                                }}  
+                                component={'li'}
+                            >
+                                <ListItemIcon>
+                                    {<GroupAddIcon fontSize="small" />}
+                                </ListItemIcon>
+                                <ListItemText>
+                                    {'Manage Users'}
+                                </ListItemText>
+                            </MenuItem> }
+                            <MenuItem
+                                onClick={() => {
+                                    navigate('/user/preferences')
+                                }}  
+                                component={'li'}
+                            >
+                                <ListItemIcon>
+                                    {<ManageAccountsIcon fontSize="small" />}
+                                </ListItemIcon>
+                                <ListItemText>
+                                    {translate("ess.users.preferences.title")}
+                                </ListItemText>
+                            </MenuItem>
                         </UserMenu>
                     </Box>
                 </Box>

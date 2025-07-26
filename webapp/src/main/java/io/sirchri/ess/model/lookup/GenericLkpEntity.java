@@ -20,23 +20,12 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.controller.dto;
+package io.sirchri.ess.model.lookup;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import lombok.Data;
+import io.sirchri.ess.model.*;
 
-/**
- *
- * @author christian
- */
-@Data
-public class EventBetweenDatesDto {
-    private ZonedDateTime start;
-    private ZonedDateTime end;
-    private List<Long> groups;        
-    private boolean detailed = false;
-    private String timezone;
+public interface GenericLkpEntity<T> {
 
-    // getters and setters omitted
+    String getId();
+
 }

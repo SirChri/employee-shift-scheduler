@@ -20,23 +20,21 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.controller.dto;
+package io.sirchri.ess.util;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import lombok.Data;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.sirchri.ess.controller.dto.UserPreferencesDto;
 
-/**
- *
- * @author christian
- */
-@Data
-public class EventBetweenDatesDto {
-    private ZonedDateTime start;
-    private ZonedDateTime end;
-    private List<Long> groups;        
-    private boolean detailed = false;
-    private String timezone;
+public class PreferencesUtils {
 
-    // getters and setters omitted
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static String toJson(UserPreferencesDto preferences) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(preferences);
+    }
+
+    public static UserPreferencesDto fromJson(String json) throws JsonProcessingException {
+        return objectMapper.readValue(json, UserPreferencesDto.class);
+    }
 }

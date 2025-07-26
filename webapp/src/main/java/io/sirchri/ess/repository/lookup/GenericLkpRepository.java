@@ -20,23 +20,13 @@
  * SOFTWARE.
  */
 
-package io.sirchri.ess.controller.dto;
+package io.sirchri.ess.repository.lookup;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import lombok.Data;
+import io.sirchri.ess.model.lookup.GenericLkpEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.NoRepositoryBean;
 
-/**
- *
- * @author christian
- */
-@Data
-public class EventBetweenDatesDto {
-    private ZonedDateTime start;
-    private ZonedDateTime end;
-    private List<Long> groups;        
-    private boolean detailed = false;
-    private String timezone;
-
-    // getters and setters omitted
+@NoRepositoryBean
+public interface GenericLkpRepository<T extends GenericLkpEntity<T>> extends JpaRepository<T, String>, JpaSpecificationExecutor<T> {
 }

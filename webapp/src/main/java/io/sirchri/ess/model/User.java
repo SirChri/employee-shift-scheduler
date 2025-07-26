@@ -22,6 +22,7 @@
 
 package io.sirchri.ess.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -73,15 +74,27 @@ public class User implements Serializable, GenericEntity<User> {
     @Column(name = "modified_at")
     private ZonedDateTime modifiedAt;
     
+    @Column(name = "preferences", columnDefinition = "text")
+    private String preferences;
+    
     public User() {
     }
 
+    
+    @PreUpdate
+    private void beforeUpdate() {
+        if (this.preferences == null || this.preferences.isEmpty()) {
+            this.preferences = "{\"timezone\": \"Europe/Rome\", \"language\": \"en\"}";
+        }
+    }
+    
     @Override
     public void update(User source) {
       this.username = source.getUsername();
       this.email = source.getEmail();
       this.password = source.getPassword(); 
       this.roles = source.getRoles();
+      this.preferences = source.getPreferences();
     }
 
     @Override

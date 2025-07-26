@@ -22,14 +22,19 @@
 
 package io.sirchri.ess.controller.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.sirchri.ess.controller.EventController;
 import io.sirchri.ess.controller.dto.GetFilterDto;
+import io.sirchri.ess.controller.dto.UserPreferencesDto;
 import io.sirchri.ess.model.ERole;
 import io.sirchri.ess.model.Role;
 import io.sirchri.ess.model.User;
 import io.sirchri.ess.repository.RoleRepository;
 import io.sirchri.ess.repository.UserRepository;
+import io.sirchri.ess.repository.lookup.TimezoneRepository;
+import io.sirchri.ess.security.services.CustomUserDetails;
 import static io.sirchri.ess.util.EntityUtils.entityToMap;
+import io.sirchri.ess.util.PreferencesUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +48,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,7 +71,10 @@ public class UserController {
     // Inject the RoleRepository and UserRepository using Spring's dependency injection
     @Autowired
     private RoleRepository roleRepo;
-    
+
+    @Autowired
+    private TimezoneRepository tzRepo;
+
     private final UserService service;
     protected final UserRepository repo;
 
@@ -186,6 +196,39 @@ public class UserController {
         Map record = secureMap(service.get(id));
         service.delete(id);
         return ResponseEntity.ok(record);
+    }
+
+    @GetMapping("/preferences")
+    public ResponseEntity<Map> getPreferences(@AuthenticationPrincipal CustomUserDetails userDetails) throws JsonProcessingException {
+        User user = repo.findById(userDetails.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        UserPreferencesDto preferences = PreferencesUtils.fromJson(user.getPreferences());
+
+        String tzDescription = tzRepo.findById(preferences.getTimezone())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Timezone not found"))
+                .getDescription();
+
+        return ResponseEntity.ok(new HashMap<>() {{
+            put("timezone", preferences.getTimezone());
+            put("timezone_description", tzDescription);
+            put("language", preferences.getLanguage());
+        }});
+    }
+
+    @PutMapping("/preferences")
+    public ResponseEntity<UserPreferencesDto> updatePreferences(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UserPreferencesDto dto) throws JsonProcessingException {
+        User user = repo.findById(userDetails.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Converti il DTO in una stringa JSON
+        String preferencesJson = PreferencesUtils.toJson(dto);
+
+        // Salva le preferenze come stringa
+        user.setPreferences(preferencesJson);
+        repo.save(user);
+
+        return ResponseEntity.ok(dto);
     }
 
     /**

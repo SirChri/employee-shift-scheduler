@@ -15,7 +15,7 @@ export const dataProvider = {
 			credentials: 'include',
 		}).then(res => res.json())
 	},
-	getTimelineData: (params: {start: string, end: string, groups: any, detailed: boolean}) => {
+	getTimelineData: (params: {start: string, end: string, groups: any, detailed: boolean, timezone: string | undefined}) => {
 		return fetch("../api/event/in", {
 			method: "POST",
 			credentials: 'include',
@@ -43,5 +43,42 @@ export const dataProvider = {
 			credentials: 'include',
 			headers: {     "Content-Type": "application/json"   },
 		}).then(res => res.json())
-	}
+	},
+	getUserPreferences: () => {
+		return fetch("../api/user/preferences", {
+			method: "GET",
+			credentials: 'include',
+			headers: {
+			  'Accept': 'application/json',
+			  'Content-Type': 'application/json'
+			},
+		}).then(res => res.json())
+	},
+	updateUserPreferences: (params: any) => {
+		return fetch("../api/user/preferences", {
+			method: "PUT",
+			credentials: 'include',
+			headers: {
+			  'Accept': 'application/json',
+			  'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(params)
+		}).then(res => res.json())
+	},
+    getLookupList: (resource: string, sortBy: string | undefined, sortDir: string | undefined) => {
+        let query:any = {
+            sortBy: sortBy || "code",
+            sortDir: sortDir || "ASC",
+        };
+
+        return fetchJson(`../api/${resource}/list`, {
+            method: 'POST',
+            body: JSON.stringify(query),
+        }).then(({ headers, json }) => {            
+            return {
+                data: json.data,
+                total: json.count
+            };
+        });
+    },
 }

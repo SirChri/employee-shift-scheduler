@@ -29,11 +29,17 @@ import EventRoundedIcon from '@mui/icons-material/EventRounded';
 import QueryBuilderRoundedIcon from '@mui/icons-material/QueryBuilderRounded';
 import RepeatRoundedIcon from '@mui/icons-material/RepeatRounded';
 import SquareRoundedIcon from '@mui/icons-material/SquareRounded';
+import { getDateInCurrentUsersTimezone } from '../utils/DateUtils';
 
 
 export default function CalendarView() {
+	const [timezone, setTimezone] = useState<{
+		name: string;
+		description: string;
+	} | undefined>(undefined);
+
 	const isSmall = useMediaQuery<Theme>(theme => theme.breakpoints.down('md'));
-    const translate = useTranslate();
+	const translate = useTranslate();
 	const [locale] = useLocaleState();
 	const calendarRef = useRef<FullCalendar>(null);
 	const [create] = useCreate();
@@ -71,14 +77,17 @@ export default function CalendarView() {
 	const [events, setEvents] = useState([] as EventInput[]);
 
 	const { data, isLoading, error } = useGetList(
-		'employee', { 
-            pagination: { page: 0, perPage: 0 }
-        }
+		'employee', {
+		pagination: { page: 0, perPage: 0 }
+	}
 	);
 
-	const flattenRecord = (event: EventInput) => {
+	const flattenRecord = (event: EventInput | undefined) => {
 		var record = event,
-			extProps = record.extendedProps;
+			extProps = record?.extendedProps;
+
+		if (!record)
+			return;
 
 		delete record["extendedProps"];
 		var data = { ...record, ...extProps };
@@ -104,19 +113,20 @@ export default function CalendarView() {
 			"start": window.start,
 			"end": window.end,
 			"groups": unchecked.length > 0 ? groups : null,
-			"detailed": true
+			"detailed": true,
+			"timezone": timezone?.name
 		};
 
 		dataProvider.getTimelineData(params)
 			.then((res) => {
 				let fetchedEvents = res.data?.map((e: EventInput) => {
-					e.start = new Date(e.dtstart);
-					e.end = new Date(e.dtend);
+					e.start = e.dtstart;
+					e.end = e.dtend;
 					e.allDay = e.all_day;
 					e.textColor = textColorOnHEXBg(e.color);
-					e.original_start_date = new Date(e.dtstart).toISOString()
+					e.original_start_date = new Date(e.dtstart).toISOString() //useful for handling exdates in recurring events
 					e.title = e.type == "JOB" ? e.title : e.type //TODO: translate this enum
-					
+
 					return e;
 				})
 
@@ -129,14 +139,27 @@ export default function CalendarView() {
 			});
 	}
 
+	useEffect(() => {
+		dataProvider.getUserPreferences()
+			.then((res) => {
+				setTimezone({
+					name: res.timezone,
+					description: res.timezone_description
+				});
+			})
+	}, []);
+
 	/**
 	 * on window change load the events
 	 */
 	useEffect(() => {
-		reloadEvents()
-	}, [window, data, unchecked])
+		if (!timezone)
+			return;
 
-	if (isLoading) { return <Loading />; }
+		reloadEvents()
+	}, [window, data, unchecked, timezone])
+
+	if (isLoading || !timezone) { return <Loading />; }
 	if (error) { return <p>ERROR</p>; }
 
 	const shallowRemoveEvent = (eventId: string) => {
@@ -147,32 +170,107 @@ export default function CalendarView() {
 	}
 
 	const eventCreate = (data: any) => {
-		data.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		data.dtend_tz = data.dtend_tz || timezone?.name;
+		data.dtstart_tz = data.dtstart_tz || timezone?.name;
+
 		data.dtstamp = new Date().toISOString();
-		data.dtstart = new Date(data.dtstart).toISOString()
-		data.dtend = new Date(data.dtend).toISOString()
+		data.dtstart = getDateInCurrentUsersTimezone(data.dtstart, data.dtstart_tz).toISOString();
+		data.dtend = getDateInCurrentUsersTimezone(data.dtend, data.dtend_tz).toISOString();
 
 		create('event', { data }, {
 			onError: (error) => {
-				notify(translate("ess.calendar.event.error_create")) 
+				notify(translate("ess.calendar.event.error_create"))
 				console.error(error)
 			},
 			onSettled: (data, error) => {
 				handleClose();
 				reloadEvents(() => {
-					notify(translate("ess.calendar.event.success_create")) 
+					notify(translate("ess.calendar.event.success_create"))
 				})
 			},
 		});
 	}
 
-	const eventEditSubmit = (info?: EventChangeArg) => {
-		let record = info && info.event ? flattenRecord(info.event.toJSON()) : info || editDialog.record;
+	/**
+	 * Handles the submission of quick event changes.
+	 *
+	 * This function is triggered when an event is modified. It processes the event data,
+	 * converts the start and end dates to ISO string format, and then calls the `eventEdit` 
+	 * function to handle the update.
+	 *
+	 * @param {EventChangeArg} [info] - Optional argument containing information about the event change.
+	 *   - `info.event` - The event object that was modified.
+	 *   - `info.event.toJSON()` - Converts the event object to a plain JavaScript object.
+	 *
+	 * @remarks
+	 * - If the `info` or `info.event` is undefined, the function will return early without performing any action.
+	 * - The `record` object is flattened and its `dtstart` and `dtend` properties are converted to ISO string format.
+	 *
+	 * @returns {void} This function does not return a value.
+	 */
+	const eventChangeSubmit = (info?: EventChangeArg) => {
+		let record = flattenRecord(info?.event?.toJSON());
+
+		if (!record)
+			return;
+
 		record.dtstart = new Date(record.dtstart).toISOString()
 		record.dtend = new Date(record.dtend).toISOString()
-		//record.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		//record.dtstamp = new Date().toISOString();
 
+		eventEdit(record, info);
+	}
+
+	/**
+	 * Handles the submission of changes made in the event popup dialog.
+	 * 
+	 * This function updates the `dtstart` and `dtend` properties of the event record
+	 * to reflect the current user's timezone, converts them to ISO string format,
+	 * and then submits the updated record for editing.
+	 * 
+	 * @remarks
+	 * - If no record is present in the `editDialog`, the function exits early.
+	 * - The `getDateInCurrentUsersTimezone` function is used to adjust the date-time values.
+	 * 
+	 * @returns {void} This function does not return a value.
+	 */
+	const eventPopupChangeSubmit = () => {
+		let record = editDialog?.record;
+
+		if (!record)
+			return;
+
+		record.dtstart_tz = record.dtstart_tz || timezone?.name;
+		record.dtend_tz = record.dtend_tz || timezone?.name;
+
+		record.dtstart = getDateInCurrentUsersTimezone(record.dtstart, record.dtstart_tz).toISOString();
+		record.dtend = getDateInCurrentUsersTimezone(record.dtend, record.dtend_tz).toISOString();
+
+		eventEdit(record, undefined);
+	}
+
+	/**
+	 * Handles the editing of an event in the calendar.
+	 * 
+	 * If the event has a parent, it opens a dialog to handle recurring events.
+	 * Otherwise, it updates the event directly and handles success or error notifications.
+	 * 
+	 * @param record - The event record to be edited. Contains event details.
+	 * @param info - (Optional) Additional information about the event change.
+	 * 
+	 * - If `record.parent` is truthy:
+	 *   - Opens a dialog (`setRecurrDialog`) to manage recurring events.
+	 * 
+	 * - If `record.parent` is falsy:
+	 *   - Calls the `update` function to update the event.
+	 *   - On error:
+	 *     - Logs the error to the console.
+	 *     - Displays an error notification using `notify`.
+	 *   - On success:
+	 *     - Displays a success notification using `notify`.
+	 *     - Closes the edit dialog (`setEditDialog`).
+	 *     - Reloads the events and displays a creation success notification.
+	 */
+	const eventEdit = (record: any, info?: EventChangeArg) => {
 		if (record?.parent) {
 			setRecurrDialog({
 				open: true,
@@ -183,27 +281,51 @@ export default function CalendarView() {
 		} else {
 			update('event', { id: record.id, data: record }, {
 				onError: (error) => {
-					notify(translate("ess.calendar.event.error_update")) 
+					notify(translate("ess.calendar.event.error_update"))
 					console.error(error)
 				},
 				onSettled: (data, error) => {
-					notify(translate("ess.calendar.event.success_update")) 
+					notify(translate("ess.calendar.event.success_update"))
 					setEditDialog({
 						open: false,
 						record: null
 					});
 
 					reloadEvents(() => {
-						notify(translate("ess.calendar.event.success_create")) 
+						notify(translate("ess.calendar.event.success_create"))
 					})
 				}
 			})
 		}
 	}
 
+	/**
+	 * Handles the removal of an event from the calendar.
+	 * 
+	 * If the event has a parent (indicating it is part of a recurring series),
+	 * it opens a dialog to confirm the deletion of the recurring event.
+	 * Otherwise, it directly deletes the event by calling the `_delete` function.
+	 * 
+	 * The `_delete` function handles the deletion process and provides feedback
+	 * to the user via notifications. It also updates the UI by closing the popover
+	 * and removing the event from the calendar view.
+	 * 
+	 * @remarks
+	 * - If the event has a parent, the `setRecurrDialog` function is called to
+	 *   handle recurring event deletion.
+	 * - If the event does not have a parent, the `_delete` function is invoked
+	 *   with appropriate callbacks for error handling and UI updates.
+	 * 
+	 * @throws
+	 * - Logs an error to the console if the deletion fails.
+	 * 
+	 * @example
+	 * // Example usage:
+	 * eventRemove();
+	 */
 	const eventRemove = () => {
 		const record = editDialog.record || popover.record;
-		
+
 		if (record?.parent) {
 			setRecurrDialog({
 				open: true,
@@ -388,6 +510,7 @@ export default function CalendarView() {
 		}
 	}
 
+
 	return (
 		<div id="calendar-container" style={{
 			margin: "30px 0"
@@ -453,7 +576,7 @@ export default function CalendarView() {
 										return (
 											<ListItem disablePadding key={record.id}>
 												<ListItemButton role={undefined} onClick={handleToggle(record.id)} dense>
-													<ListItemIcon style={{minWidth: '40px'}}>
+													<ListItemIcon style={{ minWidth: '40px' }}>
 														<Checkbox
 															edge="start"
 															checked={unchecked.indexOf(record.id) === -1}
@@ -491,17 +614,22 @@ export default function CalendarView() {
 				<Box width={isSmall ? 'auto' : 'calc(100% - 18em)'} height="85vh">
 					<FullCalendar
 						ref={calendarRef}
-						//timeZone={'UTC'}
+						timeZone={timezone?.name}
 						locale={locale}
 						height="100%"
 						selectable={true}
+						customButtons={{
+							timezone: {
+								text: timezone?.description,
+							}
+						}}
 						slotMinTime="05:00:00"
 						slotMaxTime="22:00:00"
 						plugins={[timeGrid, dayGrid, interactionPlugin]}
 						headerToolbar={{
 							left: 'today title',
 							center: '',
-							right: 'prev,next'
+							right: 'timezone prev,next'
 						}}
 						titleFormat={{ year: 'numeric', month: 'long' }}
 						eventMaxStack={5}
@@ -542,7 +670,7 @@ export default function CalendarView() {
 							})
 						}}
 						eventChange={(info) => {
-							eventEditSubmit(info)
+							eventChangeSubmit(info)
 						}}
 						editable={true}
 						events={events}
@@ -643,7 +771,7 @@ export default function CalendarView() {
 						sanitizeEmptyValues
 						record={editDialog.record}
 						resource="event"
-						onSubmit={eventEditSubmit}
+						onSubmit={eventPopupChangeSubmit}
 						onRemoveClick={eventRemove}>
 					</EventPopup>
 				</DialogContent>
@@ -702,19 +830,19 @@ export default function CalendarView() {
 					<Grid container justifyContent="flex-start">
 						<List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
 							<ListItem>
-								<ListItemIcon style={{minWidth: '40px'}}>
+								<ListItemIcon style={{ minWidth: '40px' }}>
 									<SquareRoundedIcon style={{ color: popover.record?.backgroundColor }} />
 								</ListItemIcon>
 								<ListItemText primary={popover.record?.employee_fullname} />
 							</ListItem>
 							<ListItem>
-								<ListItemIcon style={{minWidth: '40px'}}>
+								<ListItemIcon style={{ minWidth: '40px' }}>
 									<EventRoundedIcon />
 								</ListItemIcon>
 								<ListItemText primary={popover.record?.title} />
 							</ListItem>
 							<ListItem>
-								<ListItemIcon style={{minWidth: '40px'}}>
+								<ListItemIcon style={{ minWidth: '40px' }}>
 									<QueryBuilderRoundedIcon />
 								</ListItemIcon>
 								<ListItemText
@@ -724,7 +852,7 @@ export default function CalendarView() {
 							<ListItem style={{
 								display: popover.record?._rrule == null ? "none" : "default"
 							}}>
-								<ListItemIcon style={{minWidth: '40px'}}>
+								<ListItemIcon style={{ minWidth: '40px' }}>
 									<RepeatRoundedIcon />
 								</ListItemIcon>
 								<ListItemText
