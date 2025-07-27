@@ -105,16 +105,17 @@ export const EventPopup = (props: any) => {
 
                                     <Button
                                         variant="text"
+                                        disabled={userPreferences?.timezone !== formData.dtstart_tz}
                                         size="small"
                                         onClick={() => setShowTimezone(!showTimezone)}
                                     >
-                                        {showTimezone ? "Hide Timezone" : "Custom Timezone"}
+                                        {showTimezone || userPreferences?.timezone != formData.dtstart_tz ? "Hide Timezone" : "Custom Timezone"}
                                     </Button>
                                 </Box>
                             </Grid>
 
                             {/* Timezone Fields */}
-                            {showTimezone && (
+                            {(showTimezone || userPreferences?.timezone != formData.dtstart_tz) && (
                                 <>
                                     <Grid size={6}>
                                         <AutocompleteInput

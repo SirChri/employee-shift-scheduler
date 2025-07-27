@@ -192,35 +192,6 @@ export default function CalendarView() {
 	}
 
 	/**
-	 * Handles the submission of quick event changes.
-	 *
-	 * This function is triggered when an event is modified. It processes the event data,
-	 * converts the start and end dates to ISO string format, and then calls the `eventEdit` 
-	 * function to handle the update.
-	 *
-	 * @param {EventChangeArg} [info] - Optional argument containing information about the event change.
-	 *   - `info.event` - The event object that was modified.
-	 *   - `info.event.toJSON()` - Converts the event object to a plain JavaScript object.
-	 *
-	 * @remarks
-	 * - If the `info` or `info.event` is undefined, the function will return early without performing any action.
-	 * - The `record` object is flattened and its `dtstart` and `dtend` properties are converted to ISO string format.
-	 *
-	 * @returns {void} This function does not return a value.
-	 */
-	const eventChangeSubmit = (info?: EventChangeArg) => {
-		let record = flattenRecord(info?.event?.toJSON());
-
-		if (!record)
-			return;
-
-		record.dtstart = new Date(record.dtstart).toISOString()
-		record.dtend = new Date(record.dtend).toISOString()
-
-		eventEdit(record, info);
-	}
-
-	/**
 	 * Handles the submission of changes made in the event popup dialog.
 	 * 
 	 * This function updates the `dtstart` and `dtend` properties of the event record
@@ -233,8 +204,8 @@ export default function CalendarView() {
 	 * 
 	 * @returns {void} This function does not return a value.
 	 */
-	const eventPopupChangeSubmit = () => {
-		let record = editDialog?.record;
+	const eventPopupChangeSubmit = (info?: EventChangeArg) => {
+		let record = info && info.event ? flattenRecord(info.event.toJSON()) : info || editDialog.record;
 
 		if (!record)
 			return;
@@ -245,7 +216,7 @@ export default function CalendarView() {
 		record.dtstart = getDateInCurrentUsersTimezone(record.dtstart, record.dtstart_tz).toISOString();
 		record.dtend = getDateInCurrentUsersTimezone(record.dtend, record.dtend_tz).toISOString();
 
-		eventEdit(record, undefined);
+		eventEdit(record, info);
 	}
 
 	/**
@@ -285,20 +256,18 @@ export default function CalendarView() {
 					console.error(error)
 				},
 				onSettled: (data, error) => {
-					notify(translate("ess.calendar.event.success_update"))
 					setEditDialog({
 						open: false,
 						record: null
 					});
 
 					reloadEvents(() => {
-						notify(translate("ess.calendar.event.success_create"))
+						notify(translate("ess.calendar.event.success_update"))
 					})
 				}
 			})
 		}
 	}
-
 	/**
 	 * Handles the removal of an event from the calendar.
 	 * 
@@ -670,7 +639,7 @@ export default function CalendarView() {
 							})
 						}}
 						eventChange={(info) => {
-							eventChangeSubmit(info)
+							eventPopupChangeSubmit(info)
 						}}
 						editable={true}
 						events={events}
