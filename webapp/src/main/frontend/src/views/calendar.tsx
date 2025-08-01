@@ -5,7 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react'; // must go before plugins
 import timeGrid from '@fullcalendar/timegrid'; // a plugin!
 import AddIcon from '@mui/icons-material/Add';
-import { Box, Button, Card, CardContent, Checkbox, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, Grid, IconButton, Popover, Radio, RadioGroup, Theme, useMediaQuery } from '@mui/material';
+import { Box, Button, Card, CardContent, Checkbox, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, Grid, IconButton, Popover, Radio, RadioGroup, Stack, Theme, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import Fab from '@mui/material/Fab';
 import List from '@mui/material/List';
@@ -13,15 +13,17 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import moment from 'moment';
 import { useEffect, useRef, useState } from 'react';
-import { Loading, useCreate, useDelete, useGetList, useLocaleState, useNotify, useTranslate, useUpdate } from 'react-admin';
+import { Loading, useCreate, useDelete, useGetList, useLocaleState, useNotify, useTheme, useTranslate, useUpdate } from 'react-admin';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { EventPopup } from '../components/EventPopup';
 import { dataProvider } from '../dataProvider';
 import { textColorOnHEXBg } from '../utils/Utilities';
 
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -46,7 +48,9 @@ export default function CalendarView() {
 	const [update] = useUpdate();
 	const [_delete] = useDelete();
 	const notify = useNotify();
-	const [calendarValue, setCalendarValue] = useState(new Date());
+	const [calendarValue, setCalendarValue] = useState<Date>(new Date());
+	const [activeStartDate, setActiveStartDate] = useState<Date>(new Date()); // Stato per la navigazione del calendario
+
 	const [recurrAction, setRecurrAction] = useState("0")
 	const [dialog, setDialog] = useState<any>({
 		open: false,
@@ -79,8 +83,7 @@ export default function CalendarView() {
 	const { data, isLoading, error } = useGetList(
 		'employee', {
 		pagination: { page: 0, perPage: 0 }
-	}
-	);
+	});
 
 	const flattenRecord = (event: EventInput | undefined) => {
 		var record = event,
@@ -95,6 +98,14 @@ export default function CalendarView() {
 		data.dtend = data.end;
 
 		return data;
+	}
+
+	const translateEventTitle = (event: any) => {
+		if (event.title?.match("SICKNESS|PERMIT|MAKEUP|HOLIDAY")) {
+			return <i><b>{translate("ess.calendar.event.type." + event.title?.toLowerCase())}</b></i>
+		} else {
+			return event.title;
+		}
 	}
 
 	/**
@@ -515,17 +526,24 @@ export default function CalendarView() {
 							}
 							<Calendar
 								showFixedNumberOfWeeks={true}
-								//onChange={setCalendarValue} 
-								value={calendarValue}
-								formatShortWeekday={(locale, date) => date.toLocaleDateString(locale, { weekday: 'narrow' })}
+								value={calendarValue} 
+								activeStartDate={activeStartDate} 
+								formatShortWeekday={(locale, date) =>
+									date.toLocaleDateString(locale, { weekday: 'narrow' })
+								}
 								locale={locale}
 								navigationLabel={({ date, label, locale, view }) => label}
 								next2Label={null}
 								prev2Label={null}
+								onActiveStartDateChange={({ activeStartDate }) => {
+									if (activeStartDate)
+										setActiveStartDate(activeStartDate); 
+								}}
 								onClickDay={(value) => {
 									let calendar = calendarRef.current;
-									calendar?.getApi().gotoDate(value)
-									setCalendarValue(value)
+									calendar?.getApi().gotoDate(value);
+									setCalendarValue(value); 
+									setActiveStartDate(value)
 								}}
 							/>
 							{
@@ -533,11 +551,54 @@ export default function CalendarView() {
 								 * Employee list
 								 */
 							}
-							<h4 style={{
-								marginBottom: "0",
-								padding: "0 6px",
-								marginTop: "25px"
-							}}>Calendars</h4>
+							<Divider sx={{ margin: "20px 0" }} />
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+								padding="0 6px"
+								marginTop="20px"
+								marginBottom="10px"
+							>
+								{/* Titolo con icona */}
+								<Stack direction="row" alignItems="center" spacing={1}>
+									<CalendarMonthIcon color="primary" />
+									<Typography
+										variant="h6"
+										component="h4"
+										sx={{
+											margin: 0,
+											fontSize: "1rem",
+											fontWeight: "bold",
+											color: "primary.main",
+										}}
+									>
+										{translate("ess.calendar.calendars")}
+									</Typography>
+								</Stack>
+
+								{/* Pulsanti Seleziona/Deseleziona */}
+								<Stack direction="row" spacing={1}>
+									<Tooltip title={translate("ess.calendar.calendarlist.select_all")}>
+										<IconButton
+											size="small"
+											color="primary"
+											onClick={() => setUnchecked([])} // Seleziona tutti
+										>
+											<CheckBoxIcon fontSize="small" />
+										</IconButton>
+									</Tooltip>
+									<Tooltip title={translate("ess.calendar.calendarlist.deselect_all")}>
+										<IconButton
+											size="small"
+											color="primary"
+											onClick={() => setUnchecked(data!.map((record) => record.id))} // Deseleziona tutti
+										>
+											<CheckBoxOutlineBlankIcon fontSize="small" />
+										</IconButton>
+									</Tooltip>
+								</Stack>
+							</Box>
 							<nav aria-label="main">
 								<List>
 									{data!.map(record => {
@@ -617,14 +678,14 @@ export default function CalendarView() {
 							if (eventContent.timeText)
 								return (
 									<>
-										{eventContent.event.title}<br />
+										{translateEventTitle(eventContent.event._def)}<br />
 										<i>{eventContent.timeText} </i>
 									</>
 								)
 
 							return (
 								<>
-									<i>{eventContent.event.title}</i>
+									<i>{translateEventTitle(eventContent.event._def)}</i>
 								</>
 							)
 						}}
@@ -649,8 +710,10 @@ export default function CalendarView() {
 								end: dateInfo.end.toISOString()
 							})
 
-							if (dateInfo.start > calendarValue || dateInfo.end < calendarValue)
-								setCalendarValue(moment(dateInfo.start).add(moment(calendarValue).weekday(), 'd').toDate());
+							if (dateInfo.start > calendarValue || dateInfo.end < calendarValue) {
+								setCalendarValue(new Date(dateInfo.start.getTime() + (calendarValue.getDay() * 24 * 60 * 60 * 1000)));
+								setActiveStartDate(new Date(dateInfo.start.getTime() + (calendarValue.getDay() * 24 * 60 * 60 * 1000)));
+							}
 
 						}}
 					/>
@@ -666,7 +729,7 @@ export default function CalendarView() {
 				open={dialog.open}
 				onClose={handleClose}
 			>
-				<DialogTitle>New event</DialogTitle>
+				<DialogTitle>{translate("ess.calendar.dialog.new_event_title")}</DialogTitle>
 				<DialogContent>
 					<EventPopup
 						{...dialog}
@@ -683,7 +746,7 @@ export default function CalendarView() {
 				 */
 			}
 			<Dialog open={recurrDialog.open}>
-				<DialogTitle>Edit recurring event</DialogTitle>
+				<DialogTitle>{translate("ess.calendar.dialog.edit_recurring_event_title")}</DialogTitle>
 				<DialogContent>
 					<FormControl>
 						<RadioGroup
@@ -704,8 +767,8 @@ export default function CalendarView() {
 					</FormControl>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={handleCloseRecurrEvt}>Cancel</Button>
-					<Button onClick={handleSubmitRecurrEvt}>OK</Button>
+					<Button onClick={handleCloseRecurrEvt}>{translate("ra.action.cancel")}</Button>
+					<Button onClick={handleSubmitRecurrEvt}>{translate("ra.action.confirm")}</Button>
 				</DialogActions>
 			</Dialog>
 			{
@@ -734,7 +797,7 @@ export default function CalendarView() {
 						anchorEl: null
 					});
 				}}>
-				<DialogTitle>Edit event</DialogTitle>
+				<DialogTitle>{translate("ess.calendar.dialog.edit_event_title")}</DialogTitle>
 				<DialogContent>
 					<EventPopup
 						sanitizeEmptyValues

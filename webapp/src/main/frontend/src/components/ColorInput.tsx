@@ -39,21 +39,21 @@ interface ColorInputProps {
   isRequired?: boolean
   validate?: Validator | Validator[] | undefined
   picker?:
-    | 'Alpha'
-    | 'Block'
-    | 'Check'
-    | 'Chrome'
-    | 'Circle'
-    | 'Compact'
-    | 'Github'
-    | 'Hue'
-    | 'Material'
-    | 'Photoshop'
-    | 'Sketch'
-    | 'Slider'
-    | 'Swatches'
-    | 'Twitter'
-    | 'Custom'
+  | 'Alpha'
+  | 'Block'
+  | 'Check'
+  | 'Chrome'
+  | 'Circle'
+  | 'Compact'
+  | 'Github'
+  | 'Hue'
+  | 'Material'
+  | 'Photoshop'
+  | 'Sketch'
+  | 'Slider'
+  | 'Swatches'
+  | 'Twitter'
+  | 'Custom'
 }
 
 export const ColorInput = (props: ColorInputProps) => {
@@ -95,6 +95,7 @@ export const ColorInput = (props: ColorInputProps) => {
         isRequired={isRequired}
         label={label}
         error={!!(isTouched && error)}
+        style={{ marginRight: '5px' }}
       />
       {show ? (
         <div className="ColorInput-popup">
@@ -106,13 +107,14 @@ export const ColorInput = (props: ColorInputProps) => {
         </div>
       ) : null}
       <div
+        onClick={handleOpen}
         style={{
-          width: '20px',
+          width: '40px',
           height: '40px',
-          background: field.value ? field.value : "#FFFFFF",
-          border: "1px solid #bbb",
-          marginRight: '5px',
-          marginLeft: '-1px'
+          background: field.value || '#FFFFFF',
+          border: '1px solid #bbb',
+          borderRadius: '4px',
+          cursor: 'pointer',
         }}
       />
     </div>

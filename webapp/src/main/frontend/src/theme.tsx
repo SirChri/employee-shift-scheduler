@@ -12,4 +12,14 @@ export const theme = createTheme({
       main: "#0A9396"
     }
   },
+  typography: {
+    fontFamily: [
+      'Open Sans', // Font scelto
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'Arial',
+      'sans-serif',
+    ].join(','),
+  }
 });

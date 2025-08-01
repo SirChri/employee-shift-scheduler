@@ -13,7 +13,7 @@
     </parent>
     <groupId>io.sirchri</groupId>
     <artifactId>ess</artifactId>
-    <version>0.9.3</version>
+    <version>0.9.4</version>
     <packaging>war</packaging>
     <name>ess</name>
     <description>Shift Scheduler</description>

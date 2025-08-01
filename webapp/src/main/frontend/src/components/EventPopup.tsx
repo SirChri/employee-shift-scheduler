@@ -1,33 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Badge, Box, Button, Chip, Divider, FormControlLabel, Grid, IconButton, styled, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { AutocompleteInput, BooleanInput, CommonInputProps, DateInput, DateTimeInput, FieldTitle, FormDataConsumer, Loading, ReferenceInput, SaveButton, SelectInput, SimpleForm, Toolbar, required, useDelete, useInput, useNotify, useRecordContext, useTranslate } from "react-admin";
+import { Box, Button, Chip, Divider, Grid, IconButton, Typography } from '@mui/material';
+import { AutocompleteInput, BooleanInput, DateInput, DateTimeInput,  FormDataConsumer, Loading, ReferenceInput, SaveButton, SimpleForm, Toolbar, required, useNotify, useTranslate } from "react-admin";
 import { eventTypeEnum } from '../utils/Utilities';
 import RruleInput from './RruleInput';
-import { dataProvider } from '../dataProvider';
 import { useUserPreferences } from '../hooks/useUserPreferences';
 import { useTimezoneList } from '../hooks/useTimezoneList';
-import clsx from 'clsx';
 import { ToggleButtonInput } from './ToggleButtonInput';
 
-const PostCreateToolbar = (props: any) => {
-    return (
-        <Toolbar>
-            <SaveButton
-                label="Save"
-            />
-            <IconButton sx={{ marginLeft: "auto" }} aria-label="delete" onClick={() => {
-                props.onRemoveClick()
-            }}>
-                <DeleteIcon />
-            </IconButton>
-        </Toolbar>
-    );
-};
-
-
 export const EventPopup = (props: any) => {
-    const notify = useNotify();
     const translate = useTranslate();
     const { onRemoveClick, ...sfProps } = props;
     const { userPreferences, upLoading, upError } = useUserPreferences();
@@ -39,7 +20,14 @@ export const EventPopup = (props: any) => {
     return (
         <SimpleForm
             {...sfProps}
-            toolbar={<PostCreateToolbar onRemoveClick={onRemoveClick}></PostCreateToolbar>}
+            toolbar={<Toolbar>
+                <SaveButton
+                    label={translate("ra.action.save")}
+                />
+                <IconButton sx={{ marginLeft: "auto" }} aria-label="delete" onClick={onRemoveClick}>
+                    <DeleteIcon />
+                </IconButton>
+            </Toolbar>}
         >
             <FormDataConsumer>
                 {({ formData, ...rest }) => (
@@ -50,19 +38,18 @@ export const EventPopup = (props: any) => {
                             <Grid size={12}>
                                 <ToggleButtonInput
                                     source="type"
-                                    label="Event Type"
                                     choices={Object.entries(eventTypeEnum).map(([id, name]) => ({
                                         id,
-                                        name,
+                                        name: translate("ess.calendar.event.type." + name?.toLowerCase())
                                     }))}
                                 />
                                 <Divider sx={{ marginY: 2 }} />
                             </Grid>
 
                             <Grid size={4}>
-                                <ReferenceInput source="employee" reference="employee" label="Employee">
+                                <ReferenceInput source="employee" reference="employee">
                                     <AutocompleteInput
-                                        optionText="fullname"
+                                        optionText="fullname" label={translate("ess.calendar.event.labels.employee")}
                                         validate={required()} size='small'
                                         filterToQuery={(string) => ({ fullname: { ilike: `${string}` } })}
                                     />
@@ -70,10 +57,10 @@ export const EventPopup = (props: any) => {
                             </Grid>
                             <Grid size={4}>
                                 {formData.type === "JOB" && (
-                                    <ReferenceInput source="customer" reference="customer" label="Customer">
+                                    <ReferenceInput source="customer" reference="customer">
                                         <AutocompleteInput
                                             optionText="name" size='small'
-                                            validate={required()}
+                                            validate={required()} label={translate("ess.calendar.event.labels.customer")}
                                             filterToQuery={(string) => ({ name: { ilike: `${string}` } })}
                                         />
                                     </ReferenceInput>
@@ -83,7 +70,7 @@ export const EventPopup = (props: any) => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                     <BooleanInput
                                         source="all_day"
-                                        label="All Day"
+                                        label={translate("ess.calendar.event.labels.all_day")}
                                         sx={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -92,15 +79,15 @@ export const EventPopup = (props: any) => {
                                 </Box>
                             </Grid>
                             <Grid size={6}>
-                                {formData.all_day ? <DateInput fullWidth source="dtstart" label="Start Date" validate={required()} /> : <DateTimeInput fullWidth source="dtstart" label="Start Date" validate={required()} />}
+                                {formData.all_day ? <DateInput fullWidth source="dtstart" label={translate("ess.calendar.event.labels.start_date")} validate={required()} /> : <DateTimeInput fullWidth source="dtstart" label={translate("ess.calendar.event.labels.start_date")} validate={required()} />}
                             </Grid>
                             <Grid size={6}>
-                                {formData.all_day ? <DateInput fullWidth source="dtend" label="End Date" validate={required()} /> : <DateTimeInput fullWidth source="dtend" label="End Date" validate={required()} />}
+                                {formData.all_day ? <DateInput fullWidth source="dtend" label={translate("ess.calendar.event.labels.end_date")} validate={required()} /> : <DateTimeInput fullWidth source="dtend" label={translate("ess.calendar.event.labels.end_date")} validate={required()} />}
                             </Grid>
                             <Grid size={12}>
                                 <Box display="flex" alignItems="center" justifyContent="space-between">
                                     <Typography variant="body1">
-                                        Default Timezone: <Chip label={userPreferences?.timezone} color="secondary" size="small" />
+                                        {translate("ess.calendar.event.labels.default_timezone")} <Chip label={userPreferences?.timezone} color="secondary" size="small" />
                                     </Typography>
 
                                     <Button
@@ -109,7 +96,7 @@ export const EventPopup = (props: any) => {
                                         size="small"
                                         onClick={() => setShowTimezone(!showTimezone)}
                                     >
-                                        {showTimezone || userPreferences?.timezone != formData.dtstart_tz ? "Hide Timezone" : "Custom Timezone"}
+                                        {showTimezone || userPreferences?.timezone != formData.dtstart_tz ? translate("ess.calendar.event.labels.hide_timezone") : translate("ess.calendar.event.labels.custom_timezone")}
                                     </Button>
                                 </Box>
                             </Grid>
@@ -124,7 +111,7 @@ export const EventPopup = (props: any) => {
                                             choices={timezones}
                                             optionText="description"
                                             optionValue="code"
-                                            label="Start Date Timezone"
+                                            label={translate("ess.calendar.event.labels.start_date_timezone")}
                                             size='small'
                                         />
                                     </Grid>
@@ -135,7 +122,7 @@ export const EventPopup = (props: any) => {
                                             choices={timezones}
                                             optionText="description"
                                             optionValue="code"
-                                            label="End Date Timezone"
+                                            label={translate("ess.calendar.event.labels.end_date_timezone")}
                                             size='small'
                                         />
                                     </Grid>
