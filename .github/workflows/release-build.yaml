@@ -1,0 +1,70 @@
+name: 🚀 Release and 📦 Build Image
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  pages: write
+  id-token: write
+
+jobs:
+  release-please:
+    name: 🚀 Release Please
+    runs-on: ubuntu-22.04
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 🚀 Run Release Please
+        id: release
+        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 #4.4.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: maven
+
+  build-and-push:
+    name: 🐳 Build and Push
+    needs: release-please 
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: 🔖 Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: 🏷️ Set Docker tags
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f #5.8.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ needs.release-please.outputs.tag_name }}
+            type=raw,value=latest
+
+      - name: 🛃 Log in to Github Container registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef #3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Build and push Docker image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 #6.18.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}

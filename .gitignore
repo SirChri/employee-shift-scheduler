@@ -8,8 +8,9 @@
 node_modules
 **/node_modules
 
-webapp/target
-webapp/TODO.md
+target
+TODO.md
 
-webapp/src/main/frontend/build
-webapp/src/main/frontend/package-lock.json
+src/main/frontend/build
+src/main/frontend/package-lock.json
+/target/

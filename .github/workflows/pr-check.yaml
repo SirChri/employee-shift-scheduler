@@ -1,0 +1,72 @@
+name: ✅ PR Build & Test
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+
+# Permessi necessari per pushare su GHCR
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Uniamo tutto in un job per garantire che il JAR creato da Maven
+  # sia disponibile per la build Docker immediatamente dopo
+  build-test-push:
+    name: 🧪 Test & 🐳 Docker Push (Branch)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 🔖 Checkout
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # 1. Esegue i test e crea il pacchetto (JAR)
+      # Se questo fallisce, la Docker build non parte nemmeno.
+      - name: 🧪 Run Maven Verify
+        run: mvn verify -B
+
+      # 2. Login al registro (necessario per il push)
+      - name: 🛃 Log in to Github Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Calcola i tag per Docker basandosi sul branch della PR
+      # Esempio: branch 'feature/login' -> tag 'pr-123' o 'feature-login'
+      - name: 🏷️ Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=pr
+            type=sha,format=short
+
+      # 4. Costruisce l'immagine e la PUSHA sul registro
+      # Usa il contesto '.' quindi include il JAR appena compilato sopra
+      - name: 📦 Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}

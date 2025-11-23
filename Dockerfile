@@ -1,5 +1,14 @@
+FROM maven:3.9.6-amazoncorretto-21-debian as build-stage
+
+WORKDIR /webapp
+
+# build war file
+COPY src /webapp/src
+COPY pom.xml /webapp/pom.xml
+RUN mvn clean package
+
 FROM tomcat:jre21
-ADD https://github.com/SirChri/employee-shift-scheduler/releases/latest/download/ess-v0.9.4.war /tmp/ess.war
+COPY --from=build-stage /webapp/target/ess.war /tmp
 RUN apt-get update && apt-get install unzip
 RUN unzip /tmp/ess.war -d /usr/local/tomcat/webapps/ess
 

@@ -16,19 +16,18 @@ services:
       - backend
   
   webapp:
+    image: ghcr.io/sirchri/employee-shift-scheduler:latest
     depends_on:
       - psqldb
-    build: 
-      context: ./webapp
-      args:
-        - DB_HOST=psqldb
-        - DB_USER=$PSQL_USER
-        - DB_USER_PW=$PSQL_ROOT_PASSWORD
-        - DB_NAME=$PSQL_DATABASE
-        - DB_PORT=$PSQL_DOCKER_PORT
     restart: unless-stopped
     networks:
       - backend
+    environment:
+      - DB_HOST=psqldb
+      - DB_USER=${PSQL_USER}
+      - DB_USER_PW=${PSQL_ROOT_PASSWORD}
+      - DB_NAME=${PSQL_DATABASE}
+      - DB_PORT=${PSQL_DOCKER_PORT}
 
   nginx:
     image: nginx:latest
