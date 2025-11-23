@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5](https://github.com/SirChri/employee-shift-scheduler/compare/v0.9.4...v0.9.5) (2025-11-23)
+
+
+### Bug Fixes
+
+* change index description ([#26](https://github.com/SirChri/employee-shift-scheduler/issues/26)) ([5f67f26](https://github.com/SirChri/employee-shift-scheduler/commit/5f67f26ae48c7bf764c4549758058e34375c8563))
+* changed license ([#27](https://github.com/SirChri/employee-shift-scheduler/issues/27)) ([21abba7](https://github.com/SirChri/employee-shift-scheduler/commit/21abba7ba6dd41ac5ea3c74903bff41914f1176b))
+* docker workdir ([3dd110c](https://github.com/SirChri/employee-shift-scheduler/commit/3dd110cbf864867f69f33a9b38141ab23c714b44))
+* docker workdir ([d8c50b2](https://github.com/SirChri/employee-shift-scheduler/commit/d8c50b221afc4d8caa9a61c81aad12d0c6e45b03))
+* pr check workflow ([01d3dfa](https://github.com/SirChri/employee-shift-scheduler/commit/01d3dfad2e91386351fdff40e799d19e4d1c6d60))
+
 ## [0.9.4]
 
 ### Added
