@@ -1,14 +1,14 @@
 name: ✅ PR Build & Test
 
 on:
-  pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened]
+  push:
+    # Sequence of patterns matched against refs/heads
+    branches-ignore:
+      - 'main'
     paths-ignore:
+      - 'CODEOWNERS'
       - '**.md'
-      - 'docs/**'
-      - 'LICENSE'
+      - '.**'
 
 # Permessi necessari per pushare su GHCR
 permissions:
