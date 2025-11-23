@@ -145,6 +145,7 @@
                             <arguments>run build</arguments>
                             <environmentVariables>
                                 <PUBLIC_URL>.</PUBLIC_URL>
+                                <CI>false</CI>
                             </environmentVariables>
                         </configuration>
                     </execution>
