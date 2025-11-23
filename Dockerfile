@@ -5,7 +5,7 @@ WORKDIR /
 # build war file
 COPY src /webapp/src
 COPY pom.xml /webapp/pom.xml
-RUN mvn clean package
+RUN cd /webapp && mvn clean package
 
 FROM tomcat:jre21
 COPY --from=build-stage /webapp/target/ess.war /tmp
