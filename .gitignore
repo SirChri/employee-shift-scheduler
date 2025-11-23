@@ -12,5 +12,4 @@ target
 TODO.md
 
 src/main/frontend/build
-src/main/frontend/package-lock.json
 /target/
