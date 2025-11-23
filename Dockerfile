@@ -1,6 +1,6 @@
 FROM maven:3.9.6-amazoncorretto-21-debian as build-stage
 
-WORKDIR /webapp
+WORKDIR /
 
 # build war file
 COPY src /webapp/src
